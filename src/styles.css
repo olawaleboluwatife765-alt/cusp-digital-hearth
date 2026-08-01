@@ -5,6 +5,12 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
+ * CUSP design system — 80% premium banking, 20% architectural drafting.
+ * Paper + graphite + champagne gold. Gold is reserved for active nav,
+ * progress, selected tabs, success and balance decimals.
+ */
+
+/*
  * Design system definition.
  *
  * The @theme inline block maps CSS custom properties to Tailwind utility

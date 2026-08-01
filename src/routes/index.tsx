@@ -17,10 +17,10 @@ export const Route = createFileRoute("/")({
         content:
           "Cusp is a self-custodial Bitcoin and Stacks wallet prototype: portfolio, apps, connections and security in one drafted, premium interface.",
       },
-      { property: "og:title", content: "Cusp — Own what's next." },
+      { property: "og:title", content: "Cusp — Self-Custodial Bitcoin & Stacks Wallet" },
       {
         property: "og:description",
-        content: "Your simple gateway to digital ownership. A self-custodial Bitcoin & Stacks wallet.",
+        content: "Cusp is a self-custodial Bitcoin and Stacks wallet prototype: portfolio, apps, connections and security in one drafted, premium interface.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "/" },

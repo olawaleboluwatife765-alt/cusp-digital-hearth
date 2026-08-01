@@ -78,15 +78,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Cusp — Own what's next." },
+      { title: "Cusp — Self-Custodial Bitcoin & Stacks Wallet" },
       {
         name: "description",
-        content: "A self-custodial Bitcoin and Stacks wallet, drafted with precision.",
+        content: "Cusp is a self-custodial Bitcoin and Stacks wallet prototype: portfolio, apps, connections and security in one drafted, premium interface.",
       },
       { name: "author", content: "Cusp" },
       { property: "og:site_name", content: "Cusp" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:title", content: "Cusp — Self-Custodial Bitcoin & Stacks Wallet" },
+      { name: "twitter:title", content: "Cusp — Self-Custodial Bitcoin & Stacks Wallet" },
+      { property: "og:description", content: "Cusp is a self-custodial Bitcoin and Stacks wallet prototype: portfolio, apps, connections and security in one drafted, premium interface." },
+      { name: "twitter:description", content: "Cusp is a self-custodial Bitcoin and Stacks wallet prototype: portfolio, apps, connections and security in one drafted, premium interface." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/V1bAFneAotROVUcDUsdzXwpiode2/social-images/social-1785571308088-social-image.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/V1bAFneAotROVUcDUsdzXwpiode2/social-images/social-1785571308088-social-image.webp" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },

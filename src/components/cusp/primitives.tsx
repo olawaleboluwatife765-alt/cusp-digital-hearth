@@ -7,7 +7,7 @@ export function CuspMark({ className }: { className?: string }) {
     <img
       src={markAsset.url}
       alt="Cusp logo"
-      className={cn("select-none object-contain mix-blend-multiply", className)}
+      className={cn("select-none object-contain", className)}
       draggable={false}
     />
   );

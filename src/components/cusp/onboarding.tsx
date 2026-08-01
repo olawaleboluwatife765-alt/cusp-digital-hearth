@@ -128,6 +128,7 @@ function ProgressRun({ label, onDone }: { label: string; onDone: () => void }) {
       const t = setTimeout(onDone, 500);
       return () => clearTimeout(t);
     }
+    return undefined;
   }, [pct, onDone]);
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center px-10 text-center">
@@ -231,7 +232,7 @@ export function CreateWallet() {
   if (step === "confirm") {
     const verify = () => {
       const ok = checkIndexes.every(
-        (i) => (answers[i] ?? "").trim().toLowerCase() === phrase[i].toLowerCase(),
+        (i) => (answers[i] ?? "").trim().toLowerCase() === (phrase[i] ?? "").toLowerCase(),
       );
       if (!ok) {
         setError("Those words don't match your recovery phrase. Check the order and try again.");

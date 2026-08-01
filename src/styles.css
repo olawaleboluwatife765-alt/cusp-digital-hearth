@@ -165,5 +165,139 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior-y: none;
   }
+
+  html {
+    background-color: var(--paper-deep);
+  }
+}
+
+/* Paper grain + faint drafting grid, applied to the app canvas */
+@utility paper-surface {
+  background-color: var(--paper);
+  background-image:
+    radial-gradient(120% 80% at 50% -10%, oklch(1 0 0 / 0.7), transparent 60%),
+    linear-gradient(to right, oklch(0.32 0.008 70 / 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(0.32 0.008 70 / 0.045) 1px, transparent 1px);
+  background-size:
+    100% 100%,
+    28px 28px,
+    28px 28px;
+}
+
+@utility draft-card {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+/* Corner tick marks, like a drafted sheet */
+@utility draft-ticks {
+  position: relative;
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-color: var(--gold);
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  &::before {
+    top: 7px;
+    left: 7px;
+    border-top: 1px solid;
+    border-left: 1px solid;
+  }
+  &::after {
+    bottom: 7px;
+    right: 7px;
+    border-bottom: 1px solid;
+    border-right: 1px solid;
+  }
+}
+
+@utility hero-light {
+  background-image:
+    radial-gradient(90% 120% at 78% 10%, oklch(0.9 0.045 84 / 0.55), transparent 62%),
+    radial-gradient(70% 90% at 12% 100%, oklch(0.32 0.008 70 / 0.06), transparent 70%);
+}
+
+@utility mono-num {
+  font-family: var(--font-mono);
+  font-feature-settings: "tnum" 1;
+  letter-spacing: -0.01em;
+}
+
+@utility label-caps {
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+@utility press {
+  transition:
+    transform 0.18s var(--ease-calm),
+    box-shadow 0.24s var(--ease-calm),
+    background-color 0.2s var(--ease-calm);
+  &:active {
+    transform: scale(0.972);
+  }
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@keyframes cusp-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cusp-emerge {
+  0% {
+    opacity: 0;
+    transform: scale(0.86);
+    filter: blur(6px);
+  }
+  60% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes cusp-sweep {
+  from {
+    transform: translateX(-120%);
+  }
+  to {
+    transform: translateX(220%);
+  }
+}
+
+@utility animate-rise {
+  animation: cusp-rise 0.5s var(--ease-calm) both;
+}
+
+@utility animate-emerge {
+  animation: cusp-emerge 1.6s var(--ease-calm) both;
 }

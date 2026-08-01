@@ -5,6 +5,12 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
+ * CUSP design system — 80% premium banking, 20% architectural drafting.
+ * Paper + graphite + champagne gold. Gold is reserved for active nav,
+ * progress, selected tabs, success and balance decimals.
+ */
+
+/*
  * Design system definition.
  *
  * The @theme inline block maps CSS custom properties to Tailwind utility
@@ -19,6 +25,14 @@
  */
 
 @theme inline {
+  --font-sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-paper: var(--paper);
+  --color-paper-deep: var(--paper-deep);
+  --color-graphite: var(--graphite);
+  --color-line: var(--line);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -62,26 +76,37 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
+  --radius: 0.875rem;
+  --paper: oklch(0.965 0.009 85);
+  --paper-deep: oklch(0.935 0.012 84);
+  --graphite: oklch(0.32 0.008 70);
+  --gold: oklch(0.745 0.075 78);
+  --gold-soft: oklch(0.9 0.045 84);
+  --line: oklch(0.83 0.014 80);
+  --background: var(--paper);
+  --foreground: oklch(0.26 0.008 70);
+  --card: oklch(0.985 0.006 88);
+  --card-foreground: oklch(0.26 0.008 70);
+  --popover: oklch(0.982 0.007 88);
+  --popover-foreground: oklch(0.26 0.008 70);
+  --primary: oklch(0.29 0.008 70);
+  --primary-foreground: oklch(0.975 0.008 88);
+  --secondary: oklch(0.93 0.011 84);
+  --secondary-foreground: oklch(0.3 0.008 70);
+  --muted: oklch(0.93 0.011 84);
+  --muted-foreground: oklch(0.52 0.012 76);
+  --accent: oklch(0.93 0.03 84);
+  --accent-foreground: oklch(0.3 0.008 70);
+  --destructive: oklch(0.52 0.15 27);
+  --destructive-foreground: oklch(0.98 0.005 88);
+  --border: oklch(0.87 0.013 82);
+  --input: oklch(0.87 0.013 82);
+  --ring: oklch(0.745 0.075 78);
+  --shadow-card:
+    0 1px 1px oklch(0.32 0.008 70 / 0.05), 0 8px 24px -12px oklch(0.32 0.008 70 / 0.22);
+  --shadow-lift:
+    0 2px 4px oklch(0.32 0.008 70 / 0.06), 0 22px 44px -20px oklch(0.32 0.008 70 / 0.32);
+  --ease-calm: cubic-bezier(0.22, 0.61, 0.36, 1);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -140,5 +165,139 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior-y: none;
   }
+
+  html {
+    background-color: var(--paper-deep);
+  }
+}
+
+/* Paper grain + faint drafting grid, applied to the app canvas */
+@utility paper-surface {
+  background-color: var(--paper);
+  background-image:
+    radial-gradient(120% 80% at 50% -10%, oklch(1 0 0 / 0.7), transparent 60%),
+    linear-gradient(to right, oklch(0.32 0.008 70 / 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(0.32 0.008 70 / 0.045) 1px, transparent 1px);
+  background-size:
+    100% 100%,
+    28px 28px,
+    28px 28px;
+}
+
+@utility draft-card {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+/* Corner tick marks, like a drafted sheet */
+@utility draft-ticks {
+  position: relative;
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-color: var(--gold);
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  &::before {
+    top: 7px;
+    left: 7px;
+    border-top: 1px solid;
+    border-left: 1px solid;
+  }
+  &::after {
+    bottom: 7px;
+    right: 7px;
+    border-bottom: 1px solid;
+    border-right: 1px solid;
+  }
+}
+
+@utility hero-light {
+  background-image:
+    radial-gradient(90% 120% at 78% 10%, oklch(0.9 0.045 84 / 0.55), transparent 62%),
+    radial-gradient(70% 90% at 12% 100%, oklch(0.32 0.008 70 / 0.06), transparent 70%);
+}
+
+@utility mono-num {
+  font-family: var(--font-mono);
+  font-feature-settings: "tnum" 1;
+  letter-spacing: -0.01em;
+}
+
+@utility label-caps {
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+@utility press {
+  transition:
+    transform 0.18s var(--ease-calm),
+    box-shadow 0.24s var(--ease-calm),
+    background-color 0.2s var(--ease-calm);
+  &:active {
+    transform: scale(0.972);
+  }
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@keyframes cusp-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cusp-emerge {
+  0% {
+    opacity: 0;
+    transform: scale(0.86);
+    filter: blur(6px);
+  }
+  60% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes cusp-sweep {
+  from {
+    transform: translateX(-120%);
+  }
+  to {
+    transform: translateX(220%);
+  }
+}
+
+@utility animate-rise {
+  animation: cusp-rise 0.5s var(--ease-calm) both;
+}
+
+@utility animate-emerge {
+  animation: cusp-emerge 1.6s var(--ease-calm) both;
 }

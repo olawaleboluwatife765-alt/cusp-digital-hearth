@@ -1,11 +1,11 @@
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import markAsset from "@/assets/cusp-mark.png.asset.json";
+import markUrl from "@/assets/cusp-mark.png";
 
 export function CuspMark({ className }: { className?: string }) {
   return (
     <img
-      src={markAsset.url}
+      src={markUrl}
       alt="Cusp logo"
       className={cn("select-none object-contain", className)}
       draggable={false}

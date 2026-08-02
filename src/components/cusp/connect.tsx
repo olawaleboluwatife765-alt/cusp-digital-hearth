@@ -3,6 +3,7 @@ import { Check, Link2, ShieldCheck, X } from "lucide-react";
 import { toast } from "sonner";
 import { CButton, Card, SectionLabel, SketchGlyph, TokenGlyph } from "./primitives";
 import { CONNECTED_APPS, RECENT_CONNECTIONS } from "./data";
+import { TipBanner } from "./tips";
 
 export function ConnectScreen() {
   const [apps, setApps] = useState(CONNECTED_APPS);
@@ -43,7 +44,12 @@ export function ConnectScreen() {
                 Cannot move funds without your approval
               </p>
             </div>
-            <div className="mt-5 flex gap-3">
+            <div className="mt-5">
+              <TipBanner id="connect-review">
+                Always review what an app is requesting before approving access.
+              </TipBanner>
+            </div>
+            <div className="mt-3 flex gap-3">
               <CButton
                 variant="outline"
                 className="flex-1"

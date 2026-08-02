@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowRight, Check, KeyRound, Shield, Sparkles, Wallet } from
 import { CButton, Card, CuspMark, Divider, SectionLabel } from "./primitives";
 import { useCusp } from "./store";
 import { WORDS } from "./data";
+import { TipCard } from "./tips";
 import { cn } from "@/lib/utils";
 
 export function Splash() {
@@ -155,6 +156,14 @@ function WalletReady({ onContinue }: { onContinue: () => void }) {
       <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted-foreground">
         Your Cusp wallet is ready. You hold the keys — nobody else can move your assets.
       </p>
+      <TipCard
+        id="wallet-created"
+        label="Did you know?"
+        title="🎉 Wallet Created"
+        body="Your crypto isn't stored inside this app. Your wallet securely holds the keys that prove ownership of your assets."
+        action="Got it"
+        className="mt-8 w-full max-w-xs text-left"
+      />
       <CButton size="lg" className="mt-10 w-full max-w-xs" onClick={onContinue}>
         Continue to Dashboard
       </CButton>
@@ -225,6 +234,13 @@ export function CreateWallet() {
         <CButton size="lg" className="mt-6 w-full" onClick={() => setStep("confirm")}>
           I've written it down <ArrowRight className="size-4" />
         </CButton>
+        <TipCard
+          id="phrase-security"
+          label="Security tip"
+          title="Never share your recovery phrase"
+          body="Not even with Cusp support. Anyone with access to it can control your wallet."
+          className="mt-4"
+        />
       </Screen>
     );
   }

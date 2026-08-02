@@ -167,7 +167,7 @@ The focus of this stage is validating product design, user experience, and onboa
 This repository contains the interactive prototype for Cusp and serves as the foundation for future development into a fully functional Bitcoin and Stacks wallet.
 
 ---
- ## Documentation
+ # Documentation
 
 - [Security Model](SECURITY.md)
 - [Product Overview](PRODUCT.md)

@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { CButton, Card, CuspMark, SectionLabel, SketchGlyph, TokenGlyph } from "./primitives";
 import { SHORT_ADDRESS, useCusp } from "./store";
 import { ASSETS } from "./data";
+import { TipCard } from "./tips";
 import { cn } from "@/lib/utils";
 
 const TABS = ["Assets", "NFTs", "Activity"] as const;
@@ -71,6 +72,16 @@ export function HomeScreen() {
           </button>
         </div>
       </Card>
+
+      {/* Onboarding tip */}
+      <TipCard
+        id="welcome-stacks"
+        label="Cusp tip"
+        title="Welcome to Stacks"
+        body="Add BTC or STX to begin exploring apps, NFTs, swaps, and Bitcoin-powered DeFi."
+        action="Start Exploring"
+        onAction={() => setTab(0)}
+      />
 
       {/* Getting started */}
       <Card className="p-5">
@@ -227,8 +238,17 @@ function AssetRow({ a }: { a: (typeof ASSETS)[number] }) {
 function AssetsPanel() {
   const bitcoin = ASSETS.filter((a) => a.group === "bitcoin");
   const stacks = ASSETS.filter((a) => a.group === "stacks");
+  const allZero = ASSETS.every((a) => Number(a.balance) === 0);
   return (
     <div className="flex flex-col gap-4">
+      {allZero && (
+        <TipCard
+          id="assets-empty"
+          label="Getting started"
+          title="Your wallet is ready."
+          body="Deposit BTC or STX to unlock swaps, NFTs, and decentralized apps on Stacks."
+        />
+      )}
       <Card className="px-5 py-1">
         <div className="flex items-center gap-2 border-b border-border pt-4 pb-3">
           <SectionLabel>Bitcoin</SectionLabel>

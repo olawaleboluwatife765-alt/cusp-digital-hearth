@@ -8,7 +8,7 @@ Why Cusp exists.
 
 ## Problem
 
-Why Web3 onboarding is difficult.
+Why Web3 onboarding on stacks is difficult.
 
 ## Solution
 

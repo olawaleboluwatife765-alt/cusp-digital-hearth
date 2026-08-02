@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Bell,
   ChevronRight,
@@ -14,7 +13,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CuspMark, SectionLabel } from "./primitives";
-import { SHORT_ADDRESS } from "./store";
+import { SHORT_ADDRESS, useCusp } from "./store";
 
 function Row({
   icon: Icon,
@@ -41,7 +40,7 @@ function Row({
 }
 
 export function SettingsScreen() {
-  const [currency] = useState("USD");
+  const { currency, language, biometrics, openScreen } = useCusp();
   return (
     <div className="flex flex-col gap-5 px-5 pt-4 pb-8">
       <Card ticks className="hero-light flex items-center gap-4 p-5">
@@ -56,9 +55,9 @@ export function SettingsScreen() {
         <SectionLabel>Account</SectionLabel>
         <Card className="mt-3 px-5">
           <div className="divide-y divide-border/70">
-            <Row icon={User} label="Profile" />
-            <Row icon={Palette} label="Appearance" value="Paper" />
-            <Row icon={Bell} label="Notifications" />
+            <Row icon={User} label="Profile" onClick={() => openScreen("profile")} />
+            <Row icon={Palette} label="Appearance" value="Paper" onClick={() => openScreen("appearance")} />
+            <Row icon={Bell} label="Notifications" onClick={() => openScreen("notifications")} />
           </div>
         </Card>
       </section>
@@ -67,9 +66,9 @@ export function SettingsScreen() {
         <SectionLabel>Security</SectionLabel>
         <Card className="mt-3 px-5">
           <div className="divide-y divide-border/70">
-            <Row icon={Shield} label="Security" />
-            <Row icon={KeyRound} label="Recovery Center" value="Not backed up" />
-            <Row icon={Fingerprint} label="Biometrics" value="On" />
+            <Row icon={Shield} label="Security" onClick={() => openScreen("security")} />
+            <Row icon={KeyRound} label="Recovery Center" onClick={() => openScreen("recovery")} />
+            <Row icon={Fingerprint} label="Biometrics" value={biometrics ? "On" : "Off"} onClick={() => openScreen("security")} />
           </div>
         </Card>
       </section>
@@ -78,8 +77,8 @@ export function SettingsScreen() {
         <SectionLabel>Preferences</SectionLabel>
         <Card className="mt-3 px-5">
           <div className="divide-y divide-border/70">
-            <Row icon={Globe} label="Currency" value={currency} />
-            <Row icon={Languages} label="Language" value="English" />
+            <Row icon={Globe} label="Currency" value={currency} onClick={() => openScreen("currency")} />
+            <Row icon={Languages} label="Language" value={language} onClick={() => openScreen("language")} />
           </div>
         </Card>
       </section>
@@ -88,8 +87,19 @@ export function SettingsScreen() {
         <SectionLabel>Support</SectionLabel>
         <Card className="mt-3 px-5">
           <div className="divide-y divide-border/70">
-            <Row icon={HelpCircle} label="Help" />
-            <Row icon={Info} label="About Cusp" value="v0.1.0" />
+            <Row icon={HelpCircle} label="Help" onClick={() => openScreen("help")} />
+            <Row icon={Info} label="About Cusp" value="v0.1.0" onClick={() => openScreen("about")} />
+          </div>
+        </Card>
+      </section>
+
+      <section>
+        <SectionLabel>Legal</SectionLabel>
+        <Card className="mt-3 px-5">
+          <div className="divide-y divide-border/70">
+            <Row icon={Info} label="Privacy" onClick={() => openScreen("privacy")} />
+            <Row icon={Info} label="Terms" onClick={() => openScreen("terms")} />
+            <Row icon={Info} label="Licenses" onClick={() => openScreen("licenses")} />
           </div>
         </Card>
       </section>

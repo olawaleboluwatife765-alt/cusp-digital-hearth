@@ -2,11 +2,13 @@ import { useState } from "react";
 import { Check, Link2, ShieldCheck, X } from "lucide-react";
 import { toast } from "sonner";
 import { CButton, Card, SectionLabel, SketchGlyph, TokenGlyph } from "./primitives";
-import { CONNECTED_APPS, RECENT_CONNECTIONS } from "./data";
+import { RECENT_CONNECTIONS } from "./data";
 import { TipBanner } from "./tips";
+import { useCusp } from "./store";
 
 export function ConnectScreen() {
-  const [apps, setApps] = useState(CONNECTED_APPS);
+  const { connections, connect, disconnect } = useCusp();
+  const apps = connections;
   const [request, setRequest] = useState<{ name: string; url: string } | null>({
     name: "Bitflow",
     url: "app.bitflow.finance",
@@ -41,7 +43,7 @@ export function ConnectScreen() {
               ))}
               <p className="flex items-start gap-2 text-xs text-muted-foreground">
                 <X className="mt-0.5 size-3.5 shrink-0" strokeWidth={1.6} />
-                Cannot move funds without your approval
+                Only your public wallet address is shared unless you approve more
               </p>
             </div>
             <div className="mt-5">
@@ -63,15 +65,17 @@ export function ConnectScreen() {
               <CButton
                 className="flex-1"
                 onClick={() => {
-                  setApps((a) => [
-                    {
-                      name: request.name,
-                      url: request.url,
-                      connected: "Connected just now",
-                      permissions: ["View wallet address", "Request transaction signatures"],
-                    },
-                    ...a,
-                  ]);
+                  connect({
+                    name: request.name,
+                    url: request.url,
+                    verified: true,
+                    connected: "Connected just now",
+                    permissions: [
+                      "View wallet address",
+                      "Read balances",
+                      "Request transaction approvals",
+                    ],
+                  });
                   setRequest(null);
                   toast.success(`${request.name} connected`);
                 }}
@@ -126,7 +130,7 @@ export function ConnectScreen() {
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      setApps((prev) => prev.filter((x) => x.name !== a.name));
+                      disconnect(a.name);
                       toast(`${a.name} disconnected`);
                     }}
                   >

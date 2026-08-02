@@ -11,15 +11,14 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { CButton, Card, CuspMark, SectionLabel, SketchGlyph, TokenGlyph } from "./primitives";
-import { SHORT_ADDRESS, useCusp } from "./store";
-import { ASSETS } from "./data";
+import { SHORT_ADDRESS, formatAmount, formatFiat, useCusp, type Asset } from "./store";
 import { TipCard } from "./tips";
 import { cn } from "@/lib/utils";
 
 const TABS = ["Assets", "NFTs", "Activity"] as const;
 
 export function HomeScreen() {
-  const { hideBalance, setHideBalance, tasks, completeTask } = useCusp();
+  const { hideBalance, setHideBalance, tasks, totalUsd, currency, openScreen } = useCusp();
   const [tab, setTab] = useState(0);
   const touchX = useRef<number | null>(null);
   const done = tasks.filter((t) => t.done).length;
@@ -48,10 +47,15 @@ export function HomeScreen() {
           {hideBalance ? (
             <span className="tracking-widest">••••••</span>
           ) : (
-            <>
-              <span>$0</span>
-              <span className="text-gold">.00</span>
-            </>
+            (() => {
+              const [whole, cents] = formatFiat(totalUsd, currency).split(".");
+              return (
+                <>
+                  <span>{whole}</span>
+                  <span className="text-gold">.{cents}</span>
+                </>
+              );
+            })()
           )}
         </div>
         <p className="mono-num mt-3 text-xs text-muted-foreground">0.00% · All time</p>
@@ -80,7 +84,7 @@ export function HomeScreen() {
         title="Welcome to Stacks"
         body="Add BTC or STX to begin exploring apps, NFTs, swaps, and Bitcoin-powered DeFi."
         action="Start Exploring"
-        onAction={() => setTab(0)}
+        onAction={() => openScreen("addFunds")}
       />
 
       {/* Getting started */}
@@ -184,7 +188,7 @@ export function HomeScreen() {
 }
 
 function QuickActions() {
-  const { completeTask } = useCusp();
+  const { openScreen } = useCusp();
   const actions = [
     { icon: Plus, label: "Add Funds", note: null as string | null },
     { icon: ArrowUpRight, label: "Send", note: null },
@@ -196,16 +200,17 @@ function QuickActions() {
       {actions.map((a) => (
         <button
           key={a.label}
-          onClick={() => {
-            if (a.label === "Swap") {
-              toast("Swap is coming soon", {
-                description: "STX, BTC, sBTC and SIP-010 swaps arrive in the next release.",
-              });
-              return;
-            }
-            if (a.label === "Add Funds") completeTask("fund");
-            toast(`${a.label}`, { description: "Simulated in this prototype." });
-          }}
+          onClick={() =>
+            openScreen(
+              a.label === "Add Funds"
+                ? "addFunds"
+                : a.label === "Send"
+                  ? "send"
+                  : a.label === "Receive"
+                    ? "receive"
+                    : "swap",
+            )
+          }
           className="press draft-card flex h-[5.25rem] flex-col items-center justify-center gap-1.5 px-1"
         >
           <a.icon className="size-[1.15rem] text-foreground/75" strokeWidth={1.4} />
@@ -217,7 +222,8 @@ function QuickActions() {
   );
 }
 
-function AssetRow({ a }: { a: (typeof ASSETS)[number] }) {
+function AssetRow({ a }: { a: Asset }) {
+  const { currency } = useCusp();
   return (
     <div className="flex items-center gap-3 py-3.5">
       <TokenGlyph symbol={a.symbol} />
@@ -227,18 +233,19 @@ function AssetRow({ a }: { a: (typeof ASSETS)[number] }) {
       </div>
       <div className="text-right">
         <p className="mono-num text-sm">
-          {a.balance} {a.symbol}
+          {formatAmount(a.amount, a.decimals)} {a.symbol}
         </p>
-        <p className="mono-num text-xs text-muted-foreground">{a.fiat}</p>
+        <p className="mono-num text-xs text-muted-foreground">{formatFiat(a.amount * a.priceUsd, currency)}</p>
       </div>
     </div>
   );
 }
 
 function AssetsPanel() {
-  const bitcoin = ASSETS.filter((a) => a.group === "bitcoin");
-  const stacks = ASSETS.filter((a) => a.group === "stacks");
-  const allZero = ASSETS.every((a) => Number(a.balance) === 0);
+  const { assets } = useCusp();
+  const bitcoin = assets.filter((a) => a.group === "bitcoin");
+  const stacks = assets.filter((a) => a.group === "stacks");
+  const allZero = assets.every((a) => a.amount === 0);
   return (
     <div className="flex flex-col gap-4">
       {allZero && (
@@ -288,7 +295,7 @@ function EmptyPanel({
   title: string;
   body: string;
 }) {
-  const { completeTask } = useCusp();
+  const { openScreen } = useCusp();
   return (
     <Card ticks className="flex flex-col items-center px-8 py-12 text-center">
       <SketchGlyph kind={glyph} />
@@ -298,10 +305,7 @@ function EmptyPanel({
         variant="outline"
         size="sm"
         className="mt-6"
-        onClick={() => {
-          completeTask("fund");
-          toast("Add funds", { description: "Simulated in this prototype." });
-        }}
+        onClick={() => openScreen("addFunds")}
       >
         Add Funds
       </CButton>

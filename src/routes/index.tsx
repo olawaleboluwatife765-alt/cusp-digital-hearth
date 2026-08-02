@@ -6,6 +6,7 @@ import { HomeScreen } from "@/components/cusp/home";
 import { ExploreScreen } from "@/components/cusp/explore";
 import { ConnectScreen } from "@/components/cusp/connect";
 import { SettingsScreen } from "@/components/cusp/settings";
+import { ScreenStack } from "@/components/cusp/overlays";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -50,6 +51,7 @@ function AppShell() {
       </main>
       <BottomNav />
       <NavDrawer />
+      <ScreenStack />
     </div>
   );
 }

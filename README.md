@@ -149,4 +149,6 @@ Contributions, ideas, and constructive feedback are welcome as Cusp evolves from
 
 # License
 
-Choose an appropriate license before public release.
+This project is currently under active development.
+
+No open-source license has been assigned at this stage.

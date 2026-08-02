@@ -30,7 +30,7 @@ const NAV: { key: TabKey; label: string; icon: typeof Home }[] = [
 ];
 
 export function TopBar() {
-  const { setDrawerOpen } = useCusp();
+  const { setDrawerOpen, openScreen, unread } = useCusp();
   return (
     <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-border/80 bg-paper/85 px-5 py-3 backdrop-blur-md">
       <button
@@ -55,12 +55,12 @@ export function TopBar() {
         </button>
       </div>
       <button
-        onClick={() => toast("No new notifications")}
+        onClick={() => openScreen("notifications")}
         aria-label="Notifications"
         className="press relative flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-card"
       >
         <Bell className="size-4" strokeWidth={1.5} />
-        <span className="absolute top-1.5 right-2 size-1.5 rounded-full bg-gold" />
+        {unread > 0 && <span className="absolute top-1.5 right-2 size-1.5 rounded-full bg-gold" />}
       </button>
     </header>
   );
@@ -98,19 +98,19 @@ export function BottomNav() {
 }
 
 export function NavDrawer() {
-  const { drawerOpen, setDrawerOpen, network, setNetwork } = useCusp();
+  const { drawerOpen, setDrawerOpen, network, setNetwork, openScreen } = useCusp();
   const [pending, setPending] = useState<NetworkKey | null>(null);
   const [netOpen, setNetOpen] = useState(false);
 
   const items = [
-    { icon: Wallet, label: "Manage Wallets" },
-    { icon: Shield, label: "Security Center" },
-    { icon: KeyRound, label: "Recovery Center" },
-    { icon: BookUser, label: "Address Book" },
-    { icon: Link2, label: "Connected Apps" },
+    { icon: Wallet, label: "Manage Wallets", onClick: () => { setDrawerOpen(false); openScreen("manageWallets"); } },
+    { icon: Shield, label: "Security Center", onClick: () => { setDrawerOpen(false); openScreen("security"); } },
+    { icon: KeyRound, label: "Recovery Center", onClick: () => { setDrawerOpen(false); openScreen("recovery"); } },
+    { icon: BookUser, label: "Address Book", onClick: () => { setDrawerOpen(false); openScreen("addressBook"); } },
+    { icon: Link2, label: "Connected Apps", onClick: () => { setDrawerOpen(false); openScreen("connectedApps"); } },
     { icon: Network, label: "Networks", onClick: () => setNetOpen(true) },
-    { icon: HelpCircle, label: "Help & Support" },
-    { icon: Info, label: "About Cusp" },
+    { icon: HelpCircle, label: "Help & Support", onClick: () => { setDrawerOpen(false); openScreen("help"); } },
+    { icon: Info, label: "About Cusp", onClick: () => { setDrawerOpen(false); openScreen("about"); } },
   ];
 
   return (
@@ -238,7 +238,7 @@ export function NavDrawer() {
                   setNetwork(pending);
                   setPending(null);
                   setNetOpen(false);
-                  toast.success(`Switched to ${NETWORKS[pending].label}`);
+                  toast.success(`Network changed to ${NETWORKS[pending].label}`);
                 }}
               >
                 Switch

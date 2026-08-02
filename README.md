@@ -54,6 +54,33 @@ Cusp provides a modern onboarding experience inspired by consumer applications w
 - Network switching (Mainnet, Testnet & Signet)
 - Security Center & Recovery Center
 
+  
+## Screenshots
+
+### Splash Screen
+
+![Splash Screen](Screenshot_20260802-163605~2.jpg)
+
+### Onboarding 1
+
+![Onboarding](Screenshot_20260802-163614~2.jpg)
+
+### Onboarding 2
+
+![Onboarding](Screenshot_20260802-163609~2.jpg)
+
+### Wallet Interface 1
+
+![wallet interface 1](Screenshot_20260802-163623~2.jpg)
+
+### Explore
+
+![Explore](Screenshot_20260802-163632~2.jpg)
+
+### Wallet Interface 2
+
+![wallet interface 2](Screenshot_20260802-163628~2.jpg)
+
 ---
 
 # Design Philosophy

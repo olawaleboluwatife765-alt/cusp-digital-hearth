@@ -198,8 +198,8 @@ function PulseTab() {
         <Card className="mt-3 px-5">
           <div className="divide-y divide-border/70">
             {LEARN.map((l) => (
-              <div key={l} className="flex items-center gap-3 py-3.5">
-                <p className="flex-1 text-sm">{l}</p>
+              <div key={l.title} className="flex items-center gap-3 py-3.5">
+                <p className="flex-1 text-sm">{l.title}</p>
                 <ChevronRight className="size-4 text-muted-foreground" />
               </div>
             ))}

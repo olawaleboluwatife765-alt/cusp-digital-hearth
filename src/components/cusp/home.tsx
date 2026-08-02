@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 const TABS = ["Assets", "NFTs", "Activity"] as const;
 
 export function HomeScreen() {
-  const { hideBalance, setHideBalance, tasks, totalUsd, currency, openScreen } = useCusp();
+  const { hideBalance, setHideBalance, tasks, completeTask, totalUsd, currency, openScreen } = useCusp();
   const [tab, setTab] = useState(0);
   const touchX = useRef<number | null>(null);
   const done = tasks.filter((t) => t.done).length;

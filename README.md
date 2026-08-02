@@ -173,8 +173,9 @@ This repository contains the interactive prototype for Cusp and serves as the fo
 - [Product Overview](PRODUCT.md)
 - [Architecture](ARCHITECTURE.md)
 - [Development Roadmap](ROADMAP.md)
+- [Technical Specification](TECHNICAL_SPEC.md)
 - [Changelog](CHANGELOG.md)
-
+  
 # Contributing
 
 Contributions, ideas, and constructive feedback are welcome as Cusp evolves from prototype to production.

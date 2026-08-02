@@ -1,5 +1,4 @@
-
-Cusp
+##Cusp
 A next-generation self-custodial Bitcoin & Stacks wallet designed to make Web3 onboarding simple, secure, and intuitive.
 Cusp bridges familiar Web2 experiences with true Web3 ownership by combining a beginner-friendly onboarding experience with the transparency and control of a self-custodial wallet.
 Current Status: High-fidelity interactive prototype for usability testing and investor demonstrations.

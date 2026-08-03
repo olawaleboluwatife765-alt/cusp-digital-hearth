@@ -4,6 +4,9 @@ import {
   CONNECTED_APPS_SEED,
   CURRENCIES,
   NOTIFICATIONS_SEED,
+  PENDING_REQUESTS_SEED,
+  PERMISSION_HISTORY_SEED,
+  SESSIONS,
   type CurrencyKey,
 } from "./data";
 
@@ -26,6 +29,14 @@ export type ScreenKey =
   | "language"
   | "networks"
   | "connectedApps"
+  | "sessions"
+  | "securityActivity"
+  | "recommendations"
+  | "googleIdentity"
+  | "permissionHistory"
+  | "verifyPhrase"
+  | "emergency"
+  | "recoveryChecklist"
   | "devices"
   | "pin"
   | "autolock"
@@ -61,6 +72,24 @@ export type Connection = {
   connected: string;
   permissions: string[];
 };
+
+export type PendingRequest = {
+  id: string;
+  name: string;
+  url: string;
+  verified?: boolean;
+  permissions: string[];
+};
+
+export type PermissionEvent = {
+  id: string;
+  app: string;
+  action: "granted" | "revoked" | "rejected";
+  detail: string;
+  when: string;
+};
+
+export type Session = (typeof SESSIONS)[number];
 
 export type Notification = {
   id: string;
@@ -106,6 +135,11 @@ type Ctx = {
   connections: Connection[];
   connect: (c: Connection) => void;
   disconnect: (name: string) => void;
+  pendingRequests: PendingRequest[];
+  resolveRequest: (id: string, decision: "approve" | "reject") => void;
+  permissionHistory: PermissionEvent[];
+  sessions: Session[];
+  revokeSession: (id: string) => void;
   recentlyViewed: string[];
   viewApp: (name: string) => void;
 
@@ -128,6 +162,11 @@ type Ctx = {
   setPinSet: (v: boolean) => void;
   phraseBackedUp: boolean;
   setPhraseBackedUp: (v: boolean) => void;
+  googleVerified: boolean;
+  setGoogleVerified: (v: boolean) => void;
+  checklist: string[];
+  toggleChecklist: (id: string) => void;
+  securityScore: number;
   locked: boolean;
   setLocked: (v: boolean) => void;
 };
@@ -168,6 +207,15 @@ export function CuspProvider({ children }: { children: ReactNode }) {
   const [assets, setAssets] = useState<Asset[]>(() => ASSET_SEEDS.map((a) => ({ ...a })));
   const [txs, setTxs] = useState<Tx[]>([]);
   const [connections, setConnections] = useState<Connection[]>(() => [...CONNECTED_APPS_SEED]);
+  const [pendingRequests, setPendingRequests] = useState<PendingRequest[]>(() => [
+    ...PENDING_REQUESTS_SEED,
+  ]);
+  const [permissionHistory, setPermissionHistory] = useState<PermissionEvent[]>(() => [
+    ...PERMISSION_HISTORY_SEED,
+  ]);
+  const [sessions, setSessions] = useState<Session[]>(() => [...SESSIONS]);
+  const [googleVerified, setGoogleVerified] = useState(true);
+  const [checklist, setChecklist] = useState<string[]>([]);
   const [recentlyViewed, setRecentlyViewed] = useState<string[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>(() => [...NOTIFICATIONS_SEED]);
   const [currency, setCurrency] = useState<CurrencyKey>("USD");
@@ -194,6 +242,15 @@ export function CuspProvider({ children }: { children: ReactNode }) {
   );
 
   const unread = notifications.filter((n) => !n.read).length;
+
+  const securityScore = useMemo(() => {
+    let s = 40;
+    if (phraseBackedUp) s += 30;
+    if (biometrics) s += 10;
+    if (pinSet) s += 10;
+    if (googleVerified) s += 10;
+    return Math.min(100, s);
+  }, [phraseBackedUp, biometrics, pinSet, googleVerified]);
 
   const value = useMemo<Ctx>(
     () => ({
@@ -236,8 +293,64 @@ export function CuspProvider({ children }: { children: ReactNode }) {
         setTxs((prev) => prev.map((t) => (t.id === id ? { ...t, status } : t))),
 
       connections,
-      connect: (c) => setConnections((prev) => [c, ...prev.filter((p) => p.name !== c.name)]),
-      disconnect: (name) => setConnections((prev) => prev.filter((p) => p.name !== name)),
+      connect: (c) => {
+        setConnections((prev) => [c, ...prev.filter((p) => p.name !== c.name)]);
+        setPermissionHistory((prev) => [
+          {
+            id: `ph${Date.now()}`,
+            app: c.name,
+            action: "granted",
+            detail: c.permissions.join(", "),
+            when: "Just now",
+          },
+          ...prev,
+        ]);
+      },
+      disconnect: (name) => {
+        setConnections((prev) => prev.filter((p) => p.name !== name));
+        setPermissionHistory((prev) => [
+          {
+            id: `ph${Date.now()}`,
+            app: name,
+            action: "revoked",
+            detail: "All permissions removed",
+            when: "Just now",
+          },
+          ...prev,
+        ]);
+      },
+      pendingRequests,
+      resolveRequest: (id, decision) => {
+        const req = pendingRequests.find((r) => r.id === id);
+        setPendingRequests((prev) => prev.filter((r) => r.id !== id));
+        if (!req) return;
+        if (decision === "approve") {
+          setConnections((prev) => [
+            {
+              name: req.name,
+              url: req.url,
+              verified: req.verified === true,
+              connected: "Connected just now",
+              permissions: req.permissions,
+            },
+            ...prev.filter((p) => p.name !== req.name),
+          ]);
+        }
+        setPermissionHistory((prev) => [
+          {
+            id: `ph${Date.now()}`,
+            app: req.name,
+            action: decision === "approve" ? "granted" : "rejected",
+            detail:
+              decision === "approve" ? req.permissions.join(", ") : "Request declined by you",
+            when: "Just now",
+          },
+          ...prev,
+        ]);
+      },
+      permissionHistory,
+      sessions,
+      revokeSession: (id) => setSessions((prev) => prev.filter((s) => s.id !== id)),
       recentlyViewed,
       viewApp: (name) =>
         setRecentlyViewed((prev) => [name, ...prev.filter((p) => p !== name)].slice(0, 6)),
@@ -263,6 +376,12 @@ export function CuspProvider({ children }: { children: ReactNode }) {
       setPinSet,
       phraseBackedUp,
       setPhraseBackedUp,
+      googleVerified,
+      setGoogleVerified,
+      checklist,
+      toggleChecklist: (id) =>
+        setChecklist((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])),
+      securityScore,
       locked,
       setLocked,
     }),
@@ -280,6 +399,9 @@ export function CuspProvider({ children }: { children: ReactNode }) {
       totalUsd,
       txs,
       connections,
+      pendingRequests,
+      permissionHistory,
+      sessions,
       recentlyViewed,
       notifications,
       unread,
@@ -289,6 +411,9 @@ export function CuspProvider({ children }: { children: ReactNode }) {
       autoLock,
       pinSet,
       phraseBackedUp,
+      googleVerified,
+      checklist,
+      securityScore,
       locked,
     ],
   );

@@ -37,14 +37,43 @@ import {
   type Asset,
 } from "./store";
 import { cn } from "@/lib/utils";
+import { NETWORKS } from "./data";
+
+function SigningTimer({ onDone }: { onDone: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 1400);
+    return () => clearTimeout(t);
+  }, [onDone]);
+  return <div className="mt-6 h-[3px] w-40 overflow-hidden rounded-full bg-secondary"><div className="h-full w-full origin-left animate-pulse rounded-full bg-gold" /></div>;
+}
 
 /* ---------------------------------- Send --------------------------------- */
 
-type SendStep = "asset" | "recipient" | "amount" | "review" | "sending" | "done" | "failed";
+type SendStep =
+  | "asset"
+  | "recipient"
+  | "amount"
+  | "review"
+  | "signing"
+  | "sending"
+  | "done"
+  | "failed";
+
+const NETWORK_FEE_STX = 0.0003;
 
 export function SendScreen() {
-  const { assets, currency, debit, addTx, settleTx, pushNotification, back, openScreen, closeAll } =
-    useCusp();
+  const {
+    assets,
+    currency,
+    network,
+    debit,
+    addTx,
+    settleTx,
+    pushNotification,
+    back,
+    openScreen,
+    closeAll,
+  } = useCusp();
   const [step, setStep] = useState<SendStep>("asset");
   const [asset, setAsset] = useState<Asset | null>(null);
   const [to, setTo] = useState("");
@@ -54,6 +83,27 @@ export function SendScreen() {
 
   const num = Number(amount);
   const usd = asset ? num * asset.priceUsd : 0;
+  const feeUsd = NETWORK_FEE_STX * 1.82;
+
+  if (step === "signing")
+    return (
+      <SubScreen title="Signing">
+        <div
+          role="status"
+          aria-live="polite"
+          className="flex min-h-[60vh] flex-col items-center justify-center px-10 text-center"
+        >
+          <span className="animate-emerge flex size-20 items-center justify-center rounded-full border border-gold/40 bg-gold-soft/25">
+            <span className="size-10 animate-pulse rounded-full border border-gold/60" />
+          </span>
+          <p className="mt-7 text-sm">Signing on this device…</p>
+          <p className="mt-2 max-w-[16rem] text-xs leading-relaxed text-muted-foreground">
+            Your key never leaves this device. Cusp only relays the signed transaction.
+          </p>
+          <SigningTimer onDone={() => setStep("sending")} />
+        </div>
+      </SubScreen>
+    );
 
   if (step === "sending")
     return (
@@ -297,10 +347,10 @@ export function SendScreen() {
         footer={
           <div className="flex gap-3">
             <CButton variant="outline" className="flex-1" onClick={() => setStep("amount")}>
-              Edit
+              Cancel
             </CButton>
-            <CButton className="flex-1" onClick={() => setStep("sending")}>
-              Confirm send
+            <CButton className="flex-1" onClick={() => setStep("signing")}>
+              Confirm
             </CButton>
           </div>
         }
@@ -316,9 +366,12 @@ export function SendScreen() {
         </Card>
         <Card className="mt-4 px-5">
           <div className="divide-y divide-border/70">
+            <ListRow label="Asset" value={`${asset.name} · ${asset.symbol}`} />
             <ListRow label="From" value={SHORT_ADDRESS} />
-            <ListRow label="To" value={`${to.slice(0, 6)}…${to.slice(-4)}`} />
-            <ListRow label="Network fee" value="0.0003 STX" />
+            <ListRow label="Recipient" value={`${to.slice(0, 6)}…${to.slice(-4)}`} />
+            <ListRow label="Network" value={NETWORKS[network].label} />
+            <ListRow label="Estimated fee" value={`${NETWORK_FEE_STX} STX`} />
+            <ListRow label="Total" value={`${formatFiat(usd + feeUsd, currency)}`} />
             <ListRow label="Arrives in" value="~2 min" />
           </div>
         </Card>

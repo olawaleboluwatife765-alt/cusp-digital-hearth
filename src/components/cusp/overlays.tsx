@@ -1,5 +1,17 @@
 import { ActivityScreen, AddFundsScreen, ReceiveScreen, SendScreen, SwapScreen } from "./flows";
 import {
+  EmergencyScreen,
+  GoogleIdentityScreen,
+  PermissionHistoryScreen,
+  RecommendationsScreen,
+  RecoveryChecklistScreen,
+  RecoveryScreen,
+  SecurityActivityScreen,
+  SecurityScreen,
+  SessionsScreen,
+  VerifyPhraseScreen,
+} from "./centers";
+import {
   AppearanceScreen,
   AutoLockScreen,
   ConnectedAppsScreen,
@@ -9,10 +21,9 @@ import {
   InfoPage,
   LanguageScreen,
   LearnScreen,
+  NetworksScreen,
   NotificationsScreen,
   ProfileScreen,
-  RecoveryScreen,
-  SecurityScreen,
 } from "./pages";
 import { useCusp, type ScreenKey } from "./store";
 
@@ -34,8 +45,26 @@ function render(key: ScreenKey) {
       return <SecurityScreen />;
     case "recovery":
       return <RecoveryScreen />;
+    case "verifyPhrase":
+      return <VerifyPhraseScreen />;
+    case "recoveryChecklist":
+      return <RecoveryChecklistScreen />;
+    case "emergency":
+      return <EmergencyScreen />;
+    case "sessions":
+      return <SessionsScreen />;
+    case "securityActivity":
+      return <SecurityActivityScreen />;
+    case "recommendations":
+      return <RecommendationsScreen />;
+    case "googleIdentity":
+      return <GoogleIdentityScreen />;
+    case "permissionHistory":
+      return <PermissionHistoryScreen />;
     case "connectedApps":
       return <ConnectedAppsScreen />;
+    case "networks":
+      return <NetworksScreen />;
     case "devices":
       return <DevicesScreen />;
     case "autolock":

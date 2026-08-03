@@ -413,3 +413,133 @@ export function Field({
 
 export const inputClass =
   "h-12 w-full rounded-xl border border-input bg-card px-4 text-sm outline-none placeholder:font-sans placeholder:text-muted-foreground focus-visible:border-gold focus-visible:ring-1 focus-visible:ring-gold/40";
+
+/* ------------------------------------------------------------------ */
+/* Iteration 6 — status, score & loading primitives                    */
+/* ------------------------------------------------------------------ */
+
+export function Skeleton({ className }: { className?: string }) {
+  return (
+    <span
+      aria-hidden
+      className={cn("block animate-pulse rounded-lg bg-secondary/80", className)}
+    />
+  );
+}
+
+/** Simple stacked skeleton used while a screen "loads". */
+export function SkeletonCard({ rows = 3 }: { rows?: number }) {
+  return (
+    <Card className="p-5">
+      <Skeleton className="h-3 w-24" />
+      <div className="mt-4 space-y-2.5">
+        {Array.from({ length: rows }).map((_, i) => (
+          <Skeleton key={i} className={cn("h-3", i % 2 ? "w-3/5" : "w-4/5")} />
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+/** Small delay hook so pushed screens can show a calm skeleton first. */
+export function useSettled(ms = 520) {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setReady(true), ms);
+    return () => clearTimeout(t);
+  }, [ms]);
+  return ready;
+}
+
+export function StatusPill({
+  tone = "neutral",
+  children,
+}: {
+  tone?: "good" | "warn" | "neutral";
+  children: ReactNode;
+}) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[0.68rem] leading-none",
+        tone === "good" && "border-gold/50 bg-gold-soft/40 text-foreground/80",
+        tone === "warn" && "border-amber-500/50 bg-amber-500/8 text-foreground/80",
+        tone === "neutral" && "border-border bg-secondary text-muted-foreground",
+      )}
+    >
+      <span
+        className={cn(
+          "size-1.5 rounded-full",
+          tone === "good" && "bg-gold",
+          tone === "warn" && "bg-amber-500",
+          tone === "neutral" && "bg-border",
+        )}
+      />
+      {children}
+    </span>
+  );
+}
+
+/** Drafted score ring — hand-plotted arc in graphite with a gold sweep. */
+export function ScoreRing({ score, className }: { score: number; className?: string }) {
+  const r = 42;
+  const c = 2 * Math.PI * r;
+  return (
+    <div className={cn("relative size-28 shrink-0", className)}>
+      <svg viewBox="0 0 100 100" className="size-full -rotate-90" aria-hidden>
+        <circle cx="50" cy="50" r={r} fill="none" strokeWidth="3" className="stroke-border" />
+        <circle
+          cx="50"
+          cy="50"
+          r={r}
+          fill="none"
+          strokeWidth="3"
+          strokeLinecap="round"
+          className="stroke-gold transition-[stroke-dashoffset] duration-700 [transition-timing-function:var(--ease-calm)]"
+          strokeDasharray={c}
+          strokeDashoffset={c - (c * Math.min(100, Math.max(0, score))) / 100}
+        />
+        <circle cx="50" cy="50" r={r - 7} fill="none" strokeWidth="0.5" strokeDasharray="2 4" className="stroke-border" />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="mono-num text-2xl font-light leading-none">{score}</span>
+        <span className="label-caps mt-1 text-[0.55rem]">/ 100</span>
+      </div>
+    </div>
+  );
+}
+
+/** Copy control with an inline, non-intrusive confirmation. */
+export function CopyButton({
+  value,
+  label = "Copy",
+  className,
+}: {
+  value: string;
+  label?: string;
+  className?: string;
+}) {
+  const [done, setDone] = useState(false);
+  useEffect(() => {
+    if (!done) return undefined;
+    const t = setTimeout(() => setDone(false), 1600);
+    return () => clearTimeout(t);
+  }, [done]);
+  return (
+    <button
+      onClick={() => {
+        void navigator.clipboard?.writeText(value);
+        setDone(true);
+      }}
+      aria-label={label}
+      className={cn(
+        "press inline-flex min-h-9 items-center gap-1.5 rounded-full border border-border bg-card px-3 text-xs",
+        done && "border-gold/60 bg-gold-soft/40",
+        className,
+      )}
+    >
+      {done ? <Check className="size-3.5 text-gold" strokeWidth={2} /> : null}
+      {done ? "Copied" : label}
+    </button>
+  );
+}

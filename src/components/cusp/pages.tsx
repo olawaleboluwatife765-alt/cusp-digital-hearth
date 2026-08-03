@@ -1,19 +1,5 @@
 import { useState } from "react";
-import {
-  Bell,
-  BookOpen,
-  Check,
-  Fingerprint,
-  Globe,
-  KeyRound,
-  Laptop,
-  Link2,
-  Lock,
-  Shield,
-  ShieldCheck,
-  Timer,
-  User,
-} from "lucide-react";
+import { Check, Globe, Laptop, Shield, User } from "lucide-react";
 import { toast } from "sonner";
 import {
   CButton,
@@ -22,11 +8,10 @@ import {
   ListRow,
   SectionLabel,
   SubScreen,
-  Toggle,
   EmptyState,
 } from "./primitives";
-import { CURRENCIES, DEVICES, LANGUAGES, LEARN, SECURITY_TIPS, type CurrencyKey } from "./data";
-import { SHORT_ADDRESS, useCusp } from "./store";
+import { CURRENCIES, DEVICES, LANGUAGES, LEARN, NETWORKS, type CurrencyKey } from "./data";
+import { SHORT_ADDRESS, useCusp, type NetworkKey } from "./store";
 import { cn } from "@/lib/utils";
 
 export function NotificationsScreen() {
@@ -63,146 +48,6 @@ export function NotificationsScreen() {
           </Card>
         </>
       )}
-    </SubScreen>
-  );
-}
-
-export function SecurityScreen() {
-  const {
-    biometrics,
-    setBiometrics,
-    autoLock,
-    pinSet,
-    setPinSet,
-    phraseBackedUp,
-    openScreen,
-    setLocked,
-  } = useCusp();
-  return (
-    <SubScreen title="Security Center">
-      <Card ticks className="hero-light p-5">
-        <SectionLabel>Security status</SectionLabel>
-        <p className="mt-3 text-sm leading-relaxed text-foreground/75">
-          {phraseBackedUp
-            ? "Your wallet is backed up and protected on this device."
-            : "One step left: verify your recovery phrase so you can always restore this wallet."}
-        </p>
-        {!phraseBackedUp && (
-          <CButton size="sm" className="mt-4" onClick={() => openScreen("recovery")}>
-            Open Recovery Center
-          </CButton>
-        )}
-      </Card>
-
-      <Card className="mt-4 px-5">
-        <div className="divide-y divide-border/70">
-          <ListRow
-            icon={Fingerprint}
-            label="Biometric authentication"
-            right={<Toggle checked={biometrics} onChange={setBiometrics} label="Biometrics" />}
-          />
-          <ListRow
-            icon={Lock}
-            label="PIN"
-            value={pinSet ? "Set" : "Not set"}
-            onClick={() => {
-              setPinSet(true);
-              toast.success("PIN updated");
-            }}
-          />
-          <ListRow
-            icon={Timer}
-            label="Auto-lock timer"
-            value={autoLock}
-            onClick={() => openScreen("autolock")}
-          />
-          <ListRow
-            icon={Lock}
-            label="Lock wallet now"
-            onClick={() => {
-              setLocked(true);
-              toast("Wallet locked");
-            }}
-          />
-          <ListRow icon={Laptop} label="Connected devices" onClick={() => openScreen("devices")} />
-          <ListRow icon={Link2} label="Connected apps" onClick={() => openScreen("connectedApps")} />
-          <ListRow
-            icon={KeyRound}
-            label="Recovery phrase status"
-            value={phraseBackedUp ? "Verified" : "Not verified"}
-            onClick={() => openScreen("recovery")}
-          />
-        </div>
-      </Card>
-
-      <SectionLabel className="mt-6">Security tips</SectionLabel>
-      <Card className="mt-3 p-5">
-        <div className="space-y-2.5">
-          {SECURITY_TIPS.map((t) => (
-            <p key={t} className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
-              <ShieldCheck className="mt-0.5 size-3.5 shrink-0 text-gold" strokeWidth={1.6} />
-              {t}
-            </p>
-          ))}
-        </div>
-      </Card>
-    </SubScreen>
-  );
-}
-
-export function RecoveryScreen() {
-  const { phraseBackedUp, setPhraseBackedUp, openScreen } = useCusp();
-  return (
-    <SubScreen title="Recovery Center">
-      <Card ticks className="hero-light p-5">
-        <SectionLabel>Backup status</SectionLabel>
-        <p className="mt-3 flex items-center gap-2 text-sm">
-          <span
-            className={cn("size-2 rounded-full", phraseBackedUp ? "bg-emerald-600" : "bg-amber-500")}
-          />
-          {phraseBackedUp ? "Recovery phrase verified" : "Recovery phrase not verified"}
-        </p>
-        <CButton
-          size="sm"
-          className="mt-4"
-          onClick={() => {
-            setPhraseBackedUp(true);
-            toast.success("Recovery verified");
-          }}
-        >
-          {phraseBackedUp ? "Verify again" : "Verify recovery phrase"}
-        </CButton>
-      </Card>
-
-      <Card className="mt-4 px-5">
-        <div className="divide-y divide-border/70">
-          <ListRow
-            icon={Bell}
-            label="Backup reminder"
-            value="Weekly"
-            onClick={() => toast("Reminder set for weekly")}
-          />
-          <ListRow icon={BookOpen} label="Learn about self-custody" onClick={() => openScreen("learn")} />
-          <ListRow
-            icon={KeyRound}
-            label="Restore a wallet"
-            onClick={() => toast("Restore", { description: "Available from the sign-in screen." })}
-          />
-        </div>
-      </Card>
-
-      <SectionLabel className="mt-6">Why this matters</SectionLabel>
-      <div className="mt-3 flex flex-col gap-3">
-        {LEARN.slice(3).map((l) => (
-          <Card key={l.title} className="p-5">
-            <h3 className="text-sm font-medium">{l.title}</h3>
-            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{l.body}</p>
-          </Card>
-        ))}
-      </div>
-      <div className="mt-4">
-        <InfoNote>Cusp support will never ask for your recovery phrase.</InfoNote>
-      </div>
     </SubScreen>
   );
 }
@@ -475,6 +320,74 @@ export function HelpScreen() {
           Send a message
         </CButton>
       </Card>
+    </SubScreen>
+  );
+}
+
+export function NetworksScreen() {
+  const { network, setNetwork } = useCusp();
+  const [pending, setPending] = useState<NetworkKey | null>(null);
+  return (
+    <SubScreen title="Networks">
+      <p className="text-sm text-muted-foreground">
+        Switch the network this wallet talks to. Test networks are for trying things safely.
+      </p>
+      <div className="mt-4 flex flex-col gap-3">
+        {(Object.keys(NETWORKS) as NetworkKey[]).map((k) => (
+          <button
+            key={k}
+            onClick={() => (k === network ? undefined : setPending(k))}
+            className={cn(
+              "press draft-card flex items-center gap-3 p-4 text-left",
+              k === network && "border-gold/60",
+            )}
+          >
+            <span className={cn("size-2 rounded-full", NETWORKS[k].dot)} />
+            <span className="flex-1">
+              <span className="block text-sm font-medium">{NETWORKS[k].label}</span>
+              <span className="block text-xs text-muted-foreground">{NETWORKS[k].note}</span>
+            </span>
+            {k === network && <span className="text-xs text-gold">Active</span>}
+          </button>
+        ))}
+      </div>
+      <div className="mt-4">
+        <InfoNote>
+          Test networks use test assets with no real value. Balances and transactions there are not
+          real.
+        </InfoNote>
+      </div>
+
+      {pending && (
+        <div className="fixed inset-0 z-70 flex items-center justify-center px-8">
+          <div className="absolute inset-0 bg-graphite/45" onClick={() => setPending(null)} />
+          <Card ticks className="animate-rise relative w-full max-w-sm p-6">
+            <h3 className="text-lg font-medium tracking-tight">
+              Switch to {NETWORKS[pending].label}?
+            </h3>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              {pending === "mainnet"
+                ? "Mainnet uses real assets with real value."
+                : "Test networks use test assets with no real value. Nothing you do there affects your real balance."}
+            </p>
+            <div className="mt-6 flex gap-3">
+              <CButton variant="outline" className="flex-1" onClick={() => setPending(null)}>
+                Cancel
+              </CButton>
+              <CButton
+                className="flex-1"
+                onClick={() => {
+                  setNetwork(pending);
+                  setPending(null);
+                  toast.success(`Network changed to ${NETWORKS[pending].label}`);
+                }}
+              >
+                Switch
+              </CButton>
+            </div>
+          </Card>
+        </div>
+      )}
     </SubScreen>
   );
 }

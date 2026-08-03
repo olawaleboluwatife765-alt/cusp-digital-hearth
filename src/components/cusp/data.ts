@@ -170,3 +170,85 @@ export const NETWORKS = {
   testnet: { label: "Testnet", dot: "bg-amber-500", note: "Test assets with no real value." },
   signet: { label: "Signet", dot: "bg-sky-600", note: "Bitcoin test network for developers." },
 } as const;
+
+/* ------------------------------------------------------------------ */
+/* Iteration 6 — security, recovery & permission data                  */
+/* ------------------------------------------------------------------ */
+
+export const SESSIONS = [
+  { id: "s1", device: "iPhone 15 Pro", place: "Lisbon, PT", ip: "84.12.44.7", when: "Active now", current: true },
+  { id: "s2", device: "MacBook Pro", place: "Lisbon, PT", ip: "84.12.44.7", when: "2 days ago", current: false },
+  { id: "s3", device: "Chrome — Windows", place: "Porto, PT", ip: "188.250.9.31", when: "3 weeks ago", current: false },
+];
+
+export const SECURITY_ACTIVITY: {
+  id: string;
+  title: string;
+  detail: string;
+  when: string;
+  tone: "ok" | "note" | "warn";
+}[] = [
+  { id: "a1", title: "Signed in with Google identity", detail: "iPhone 15 Pro · Lisbon", when: "Today, 09:14", tone: "ok" },
+  { id: "a2", title: "Approved a connection", detail: "ALEX requested wallet address access", when: "3 days ago", tone: "note" },
+  { id: "a3", title: "Auto-lock changed", detail: "Set to 5 minutes", when: "5 days ago", tone: "note" },
+  { id: "a4", title: "Recovery phrase not verified", detail: "Backup reminder raised", when: "1 week ago", tone: "warn" },
+  { id: "a5", title: "Wallet created on this device", detail: "Keys generated locally", when: "1 week ago", tone: "ok" },
+];
+
+export const PERMISSION_EXPLAIN: { key: string; can: string; cannot: string }[] = [
+  { key: "View wallet address", can: "See your public address and label.", cannot: "It cannot see your recovery phrase or keys." },
+  { key: "Read balances", can: "Read balances already public on chain.", cannot: "It cannot move or spend anything." },
+  { key: "Request transaction approvals", can: "Prepare a transaction and ask you to sign.", cannot: "It cannot sign or send without your approval." },
+  { key: "View NFT collection", can: "List collectibles held at your address.", cannot: "It cannot transfer or list them for sale." },
+];
+
+export const PERMISSION_HISTORY_SEED: {
+  id: string;
+  app: string;
+  action: "granted" | "revoked" | "rejected";
+  detail: string;
+  when: string;
+}[] = [
+  { id: "p1", app: "ALEX", action: "granted", detail: "View wallet address, Read balances, Request transaction approvals", when: "3 days ago" },
+  { id: "p2", app: "Gamma", action: "granted", detail: "View wallet address, View NFT collection", when: "1 week ago" },
+  { id: "p3", app: "Bitflow", action: "revoked", detail: "All permissions removed", when: "2 weeks ago" },
+  { id: "p4", app: "Unknown Swap", action: "rejected", detail: "Request declined — unverified app", when: "1 month ago" },
+];
+
+export const PENDING_REQUESTS_SEED = [
+  {
+    id: "r1",
+    name: "Bitflow",
+    url: "app.bitflow.finance",
+    verified: true,
+    permissions: ["View wallet address", "Read balances", "Request transaction approvals"],
+  },
+  {
+    id: "r2",
+    name: "Ledger Lens",
+    url: "ledgerlens.app",
+    verified: false,
+    permissions: ["View wallet address", "Read balances"],
+  },
+];
+
+export const RECOVERY_CHECKLIST: { id: string; label: string; detail: string }[] = [
+  { id: "written", label: "Phrase written down offline", detail: "Pen and paper beats a screenshot." },
+  { id: "order", label: "Words stored in order", detail: "Order is part of the secret." },
+  { id: "place", label: "Stored somewhere dry and private", detail: "Not in a photo album or cloud note." },
+  { id: "verified", label: "Phrase verified in Cusp", detail: "Confirms your copy is correct." },
+];
+
+export const EMERGENCY_STEPS: { title: string; body: string }[] = [
+  { title: "Lost this device", body: "Install Cusp on a new device and restore with your 12-word phrase. Your assets live on the network, not on the phone." },
+  { title: "Phrase possibly seen by someone", body: "Create a fresh wallet immediately and move your assets to its address. A phrase cannot be changed once exposed." },
+  { title: "Suspicious app connection", body: "Open Connect and disconnect the app. Disconnecting takes effect instantly and never touches your balance." },
+  { title: "Someone contacted you for help", body: "No one from Cusp will ever ask for your phrase, keys, or a screen share. Treat every such request as fraud." },
+];
+
+export const SECURITY_RECOMMENDATIONS: { id: string; label: string; body: string }[] = [
+  { id: "verify", label: "Verify your recovery phrase", body: "Confirms your written copy can actually restore this wallet." },
+  { id: "pin", label: "Set a wallet PIN", body: "Adds a second gate before any transaction is approved." },
+  { id: "biometrics", label: "Turn on biometrics", body: "Face or fingerprint unlock on this device only." },
+  { id: "review", label: "Review connected apps", body: "Remove anything you no longer use." },
+];

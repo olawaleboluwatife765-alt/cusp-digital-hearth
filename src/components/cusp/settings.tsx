@@ -7,12 +7,14 @@ import {
   Info,
   KeyRound,
   Languages,
+  Network,
   Palette,
   Shield,
   User,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CuspMark, SectionLabel } from "./primitives";
+import { NETWORKS } from "./data";
 import { SHORT_ADDRESS, useCusp } from "./store";
 
 function Row({
@@ -40,7 +42,7 @@ function Row({
 }
 
 export function SettingsScreen() {
-  const { currency, language, biometrics, openScreen } = useCusp();
+  const { currency, language, biometrics, network, openScreen } = useCusp();
   return (
     <div className="flex flex-col gap-5 px-5 pt-4 pb-8">
       <Card ticks className="hero-light flex items-center gap-4 p-5">
@@ -79,6 +81,7 @@ export function SettingsScreen() {
           <div className="divide-y divide-border/70">
             <Row icon={Globe} label="Currency" value={currency} onClick={() => openScreen("currency")} />
             <Row icon={Languages} label="Language" value={language} onClick={() => openScreen("language")} />
+            <Row icon={Network} label="Networks" value={NETWORKS[network].label} onClick={() => openScreen("networks")} />
           </div>
         </Card>
       </section>

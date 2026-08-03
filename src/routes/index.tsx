@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { CuspProvider, useCusp } from "@/components/cusp/store";
 import { BrandScreen, CreateWallet, ImportWallet, Splash, WalletSelect } from "@/components/cusp/onboarding";
-import { BottomNav, NavDrawer, TopBar } from "@/components/cusp/shell";
+import { BottomNav, NavDrawer, NetworkBanner, TopBar } from "@/components/cusp/shell";
 import { HomeScreen } from "@/components/cusp/home";
 import { ExploreScreen } from "@/components/cusp/explore";
 import { ConnectScreen } from "@/components/cusp/connect";
@@ -43,6 +43,7 @@ function AppShell() {
   return (
     <div className="flex min-h-dvh flex-col">
       <TopBar />
+      <NetworkBanner />
       <main key={tab} className="animate-rise flex-1">
         {tab === "home" && <HomeScreen />}
         {tab === "explore" && <ExploreScreen />}

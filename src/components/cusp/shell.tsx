@@ -66,6 +66,20 @@ export function TopBar() {
   );
 }
 
+export function NetworkBanner() {
+  const { network, openScreen } = useCusp();
+  if (network === "mainnet") return null;
+  return (
+    <button
+      onClick={() => openScreen("networks")}
+      className="press flex w-full items-center justify-center gap-2 border-b border-amber-500/40 bg-amber-500/8 px-5 py-2 text-[0.7rem] text-foreground/75"
+    >
+      <span className={cn("size-1.5 rounded-full", NETWORKS[network].dot)} />
+      {NETWORKS[network].label} — test assets with no real value
+    </button>
+  );
+}
+
 export function BottomNav() {
   const { tab, setTab } = useCusp();
   return (

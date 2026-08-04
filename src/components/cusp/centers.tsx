@@ -3,6 +3,7 @@ import {
   BookOpen,
   Check,
   Fingerprint,
+  Grid3x3,
   KeyRound,
   Laptop,
   LifeBuoy,
@@ -57,7 +58,9 @@ export function SecurityScreen() {
     connections,
     sessions,
     openScreen,
-    setLocked,
+    session,
+    updateSession,
+    lockNow,
   } = useCusp();
   const ready = useSettled();
 
@@ -127,20 +130,32 @@ export function SecurityScreen() {
             right={<Toggle checked={biometrics} onChange={(v) => { setBiometrics(v); toast.success(v ? "Biometrics on" : "Biometrics off"); }} label="Biometrics" />}
           />
           <ListRow
+            icon={Grid3x3}
+            label="Device pattern"
+            desc="Prototype simulation"
+            right={
+              <Toggle
+                checked={session.pattern}
+                onChange={(v) => {
+                  updateSession({ pattern: v });
+                  toast.success(v ? "Pattern unlock on" : "Pattern unlock off");
+                }}
+                label="Device pattern"
+              />
+            }
+          />
+          <ListRow
             icon={Lock}
-            label="Wallet PIN"
+            label={pinSet ? "Change PIN" : "Create PIN"}
             value={pinSet ? "Set" : "Not set"}
-            onClick={() => {
-              setPinSet(true);
-              toast.success("PIN updated");
-            }}
+            onClick={() => openScreen("changePin")}
           />
           <ListRow icon={Timer} label="Auto-lock timer" value={autoLock} onClick={() => openScreen("autolock")} />
           <ListRow
             icon={Lock}
             label="Lock wallet now"
             onClick={() => {
-              setLocked(true);
+              lockNow();
               toast("Wallet locked");
             }}
           />

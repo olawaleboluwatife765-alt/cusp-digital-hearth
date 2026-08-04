@@ -40,6 +40,7 @@ import {
   SECURITY_TIPS,
   WORDS,
 } from "./data";
+import { PinPad } from "./auth";
 import { useCusp } from "./store";
 import { cn } from "@/lib/utils";
 
@@ -52,7 +53,6 @@ export function SecurityScreen() {
     setBiometrics,
     autoLock,
     pinSet,
-    setPinSet,
     phraseBackedUp,
     googleVerified,
     connections,
@@ -696,3 +696,74 @@ export function PermissionExplainer({ permissions }: { permissions: string[] }) 
 }
 
 export { CopyButton };
+
+/* ------------------------------- Change PIN ------------------------------- */
+
+export function ChangePinScreen() {
+  const { session, updateSession, setPinSet, back } = useCusp();
+  const [stage, setStage] = useState<"current" | "next" | "confirm" | "done">(
+    session.pin ? "current" : "next",
+  );
+  const [next, setNext] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  if (stage === "done")
+    return (
+      <SubScreen title="Wallet PIN">
+        <SuccessPanel title="PIN updated" body="Use your new six-digit PIN the next time Cusp locks.">
+          <CButton size="lg" className="mt-8 w-full max-w-xs" onClick={back}>
+            Done
+          </CButton>
+        </SuccessPanel>
+      </SubScreen>
+    );
+
+  if (stage === "current")
+    return (
+      <PinPad
+        title="Enter your current PIN"
+        error={error}
+        onComplete={(p) => {
+          if (p !== session.pin) {
+            setError("That PIN doesn't match. Try again.");
+            return;
+          }
+          setError(null);
+          setStage("next");
+        }}
+        onBack={back}
+      />
+    );
+
+  if (stage === "next")
+    return (
+      <PinPad
+        title="Choose a new PIN"
+        subtitle="Six digits, stored only on this device."
+        onComplete={(p) => {
+          setNext(p);
+          setError(null);
+          setStage("confirm");
+        }}
+        onBack={back}
+      />
+    );
+
+  return (
+    <PinPad
+      title="Confirm your new PIN"
+      error={error}
+      onComplete={(p) => {
+        if (p !== next) {
+          setError("Those PINs don't match. Try once more.");
+          return;
+        }
+        updateSession({ pin: next });
+        setPinSet(true);
+        toast.success("PIN updated");
+        setStage("done");
+      }}
+      onBack={() => setStage("next")}
+    />
+  );
+}

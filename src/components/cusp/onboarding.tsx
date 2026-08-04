@@ -123,14 +123,6 @@ export function WalletSelect() {
   );
 }
 
-function GoogleGlyph() {
-  return (
-    <span className="mono-num flex size-6 items-center justify-center rounded-full border border-border text-[0.65rem]">
-      G
-    </span>
-  );
-}
-
 function ProgressRun({ label, onDone }: { label: string; onDone: () => void }) {
   const [pct, setPct] = useState(6);
   useEffect(() => {

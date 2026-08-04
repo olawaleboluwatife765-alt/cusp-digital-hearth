@@ -1,5 +1,6 @@
 import { ActivityScreen, AddFundsScreen, ReceiveScreen, SendScreen, SwapScreen } from "./flows";
 import {
+  ChangePinScreen,
   EmergencyScreen,
   GoogleIdentityScreen,
   PermissionHistoryScreen,
@@ -67,6 +68,9 @@ function render(key: ScreenKey) {
       return <NetworksScreen />;
     case "devices":
       return <DevicesScreen />;
+    case "changePin":
+    case "pin":
+      return <ChangePinScreen />;
     case "autolock":
       return <AutoLockScreen />;
     case "currency":

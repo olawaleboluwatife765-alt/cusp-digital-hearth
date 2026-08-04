@@ -7,6 +7,7 @@ import { ExploreScreen } from "@/components/cusp/explore";
 import { ConnectScreen } from "@/components/cusp/connect";
 import { SettingsScreen } from "@/components/cusp/settings";
 import { ScreenStack } from "@/components/cusp/overlays";
+import { LockScreen } from "@/components/cusp/auth";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -32,13 +33,14 @@ export const Route = createFileRoute("/")({
 });
 
 function AppShell() {
-  const { stage, tab } = useCusp();
+  const { stage, tab, locked } = useCusp();
 
   if (stage === "splash") return <Splash />;
   if (stage === "brand") return <BrandScreen />;
   if (stage === "select") return <WalletSelect />;
   if (stage === "create") return <CreateWallet />;
   if (stage === "import") return <ImportWallet />;
+  if (stage === "lock" || locked) return <LockScreen />;
 
   return (
     <div className="flex min-h-dvh flex-col">

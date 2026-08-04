@@ -1,4 +1,5 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { DEFAULT_SESSION, clearSession, loadSession, saveSession, type CuspSession } from "./session";
 import {
   ASSET_SEEDS,
   CONNECTED_APPS_SEED,
@@ -10,7 +11,7 @@ import {
   type CurrencyKey,
 } from "./data";
 
-export type Stage = "splash" | "brand" | "select" | "create" | "import" | "app";
+export type Stage = "splash" | "brand" | "select" | "create" | "import" | "lock" | "app";
 export type TabKey = "home" | "explore" | "connect" | "settings";
 export type NetworkKey = "mainnet" | "testnet" | "signet";
 
@@ -39,6 +40,7 @@ export type ScreenKey =
   | "recoveryChecklist"
   | "devices"
   | "pin"
+  | "changePin"
   | "autolock"
   | "manageWallets"
   | "addressBook"
@@ -169,6 +171,14 @@ type Ctx = {
   securityScore: number;
   locked: boolean;
   setLocked: (v: boolean) => void;
+
+  /* simulated auth session */
+  session: CuspSession;
+  hydrated: boolean;
+  updateSession: (patch: Partial<CuspSession>) => void;
+  unlock: () => void;
+  lockNow: () => void;
+  resetWallet: () => void;
 };
 
 const CuspContext = createContext<Ctx | null>(null);
@@ -225,6 +235,8 @@ export function CuspProvider({ children }: { children: ReactNode }) {
   const [pinSet, setPinSet] = useState(false);
   const [phraseBackedUp, setPhraseBackedUp] = useState(false);
   const [locked, setLocked] = useState(false);
+  const [session, setSession] = useState<CuspSession>(DEFAULT_SESSION);
+  const [hydrated, setHydrated] = useState(false);
   const [tasks, setTasks] = useState<Task[]>([
     { id: "fund", label: "Fund your wallet", done: false },
     { id: "explore", label: "Explore a Stacks App", done: false },
@@ -234,6 +246,40 @@ export function CuspProvider({ children }: { children: ReactNode }) {
   const setTab = useCallback((t: TabKey) => {
     setScreens([]);
     setTabRaw(t);
+  }, []);
+
+  useEffect(() => {
+    const s = loadSession();
+    setSession(s);
+    setBiometrics(s.fingerprint);
+    setPinSet(Boolean(s.pin));
+    setHydrated(true);
+  }, []);
+
+  const updateSession = useCallback((patch: Partial<CuspSession>) => {
+    setSession((prev) => {
+      const next = { ...prev, ...patch };
+      saveSession(next);
+      return next;
+    });
+  }, []);
+
+  const unlock = useCallback(() => {
+    setLocked(false);
+    setStage("app");
+  }, []);
+
+  const lockNow = useCallback(() => {
+    setScreens([]);
+    setLocked(true);
+    setStage("lock");
+  }, []);
+
+  const resetWallet = useCallback(() => {
+    clearSession();
+    setSession(DEFAULT_SESSION);
+    setLocked(false);
+    setStage("brand");
   }, []);
 
   const totalUsd = useMemo(
@@ -384,6 +430,12 @@ export function CuspProvider({ children }: { children: ReactNode }) {
       securityScore,
       locked,
       setLocked,
+      session,
+      hydrated,
+      updateSession,
+      unlock,
+      lockNow,
+      resetWallet,
     }),
     [
       stage,
@@ -415,6 +467,12 @@ export function CuspProvider({ children }: { children: ReactNode }) {
       checklist,
       securityScore,
       locked,
+      session,
+      hydrated,
+      updateSession,
+      unlock,
+      lockNow,
+      resetWallet,
     ],
   );
 

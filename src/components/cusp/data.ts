@@ -252,3 +252,10 @@ export const SECURITY_RECOMMENDATIONS: { id: string; label: string; body: string
   { id: "biometrics", label: "Turn on biometrics", body: "Face or fingerprint unlock on this device only." },
   { id: "review", label: "Review connected apps", body: "Remove anything you no longer use." },
 ];
+
+/** Mock Google accounts used by the simulated account picker. */
+export const GOOGLE_ACCOUNTS = [
+  { name: "Ada Bello", email: "ada.bello@gmail.com", initials: "AB" },
+  { name: "Ada Bello (Work)", email: "ada@cusp.studio", initials: "AC" },
+  { name: "Tunde Fashola", email: "tunde.fashola@gmail.com", initials: "TF" },
+] as const;

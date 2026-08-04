@@ -1,17 +1,30 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, KeyRound, Shield, Sparkles, Wallet } from "lucide-react";
 import { CButton, Card, CuspMark, Divider, SectionLabel } from "./primitives";
+import {
+  BiometricScan,
+  GoogleAccountPicker,
+  GoogleButton,
+  GoogleLogo,
+  LearnLink,
+  LearnSheet,
+  PinPad,
+  SecureWalletStep,
+  StepRunner,
+} from "./auth";
+import type { GoogleAccount } from "./session";
 import { useCusp } from "./store";
 import { WORDS } from "./data";
 import { TipCard } from "./tips";
 import { cn } from "@/lib/utils";
 
 export function Splash() {
-  const { setStage } = useCusp();
+  const { setStage, session, hydrated } = useCusp();
   useEffect(() => {
-    const t = setTimeout(() => setStage("brand"), 2200);
+    if (!hydrated) return undefined;
+    const t = setTimeout(() => setStage(session.walletExists ? "lock" : "brand"), 2200);
     return () => clearTimeout(t);
-  }, [setStage]);
+  }, [setStage, hydrated, session.walletExists]);
 
   return (
     <div className="relative flex min-h-dvh items-center justify-center overflow-hidden">
@@ -110,14 +123,6 @@ export function WalletSelect() {
   );
 }
 
-function GoogleGlyph() {
-  return (
-    <span className="mono-num flex size-6 items-center justify-center rounded-full border border-border text-[0.65rem]">
-      G
-    </span>
-  );
-}
-
 function ProgressRun({ label, onDone }: { label: string; onDone: () => void }) {
   const [pct, setPct] = useState(6);
   useEffect(() => {
@@ -171,19 +176,145 @@ function WalletReady({ onContinue }: { onContinue: () => void }) {
   );
 }
 
-type CreateStep = "method" | "google" | "phrase" | "confirm" | "creating" | "done";
+type CreateStep =
+  | "method"
+  | "google"
+  | "picker"
+  | "authing"
+  | "phrase"
+  | "confirm"
+  | "pin"
+  | "pinConfirm"
+  | "secure"
+  | "scan"
+  | "creating"
+  | "done";
 
 export function CreateWallet() {
-  const { setStage, setWalletMethod } = useCusp();
+  const { setStage, setWalletMethod, updateSession, setPinSet, setBiometrics } = useCusp();
   const [step, setStep] = useState<CreateStep>("method");
+  const [learn, setLearn] = useState(false);
+  const [account, setAccount] = useState<GoogleAccount | null>(null);
+  const [method, setMethod] = useState<"google" | "phrase">("google");
+  const [pin, setPin] = useState("");
+  const [pinError, setPinError] = useState<string | null>(null);
+  const [scanKind, setScanKind] = useState<"fingerprint" | "pattern">("fingerprint");
+  const [unlockChoice, setUnlockChoice] = useState<"fingerprint" | "pattern" | "skip">("skip");
   const phrase = useMemo(() => WORDS, []);
   const checkIndexes = useMemo(() => [2, 6, 10], []);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [error, setError] = useState<string | null>(null);
 
+  const finish = () => {
+    updateSession({
+      walletExists: true,
+      firstLaunchDone: true,
+      authMethod: method,
+      googleAccount: account,
+      walletName: "My Wallet",
+      pin,
+      fingerprint: unlockChoice === "fingerprint",
+      pattern: unlockChoice === "pattern",
+    });
+    setPinSet(true);
+    setBiometrics(unlockChoice === "fingerprint");
+    setWalletMethod(method);
+    setStep("done");
+  };
+
   if (step === "creating")
-    return <ProgressRun label="Creating your Cusp Wallet…" onDone={() => setStep("done")} />;
+    return (
+      <StepRunner
+        steps={[
+          "Creating your wallet…",
+          "Generating Bitcoin & Stacks addresses…",
+          "Securing wallet…",
+          "Preparing dashboard…",
+        ]}
+        finalLabel="Wallet Ready"
+        onDone={finish}
+      />
+    );
   if (step === "done") return <WalletReady onContinue={() => setStage("app")} />;
+
+  if (step === "scan")
+    return (
+      <BiometricScan
+        kind={scanKind}
+        label={scanKind === "fingerprint" ? "Touch the sensor to enrol…" : "Draw your pattern…"}
+        onDone={() => setStep("creating")}
+      />
+    );
+
+  if (step === "secure")
+    return (
+      <SecureWalletStep
+        onChoose={(c) => {
+          setUnlockChoice(c);
+          if (c === "skip") {
+            setStep("creating");
+            return;
+          }
+          setScanKind(c);
+          setStep("scan");
+        }}
+      />
+    );
+
+  if (step === "pin")
+    return (
+      <PinPad
+        key="pin-create"
+        title="Create your Cusp PIN"
+        subtitle="Choose a six-digit PIN. It unlocks Cusp on this device and never leaves it."
+        onComplete={(p) => {
+          setPin(p);
+          setPinError(null);
+          setStep("pinConfirm");
+        }}
+        onBack={() => setStep("method")}
+      />
+    );
+
+  if (step === "pinConfirm")
+    return (
+      <PinPad
+        key="pin-confirm"
+        title="Confirm your PIN"
+        subtitle="Enter the same six digits again."
+        error={pinError}
+        onComplete={(p) => {
+          if (p !== pin) {
+            setPinError("Those PINs don't match. Try once more.");
+            return;
+          }
+          setPinError(null);
+          setStep("secure");
+        }}
+        onBack={() => setStep("pin")}
+      />
+    );
+
+  if (step === "authing")
+    return (
+      <StepRunner
+        steps={["Authenticating…", "Verifying identity…"]}
+        finalLabel="Identity verified."
+        onDone={() => setStep("pin")}
+      />
+    );
+
+  if (step === "picker")
+    return (
+      <GoogleAccountPicker
+        onCancel={() => setStep("google")}
+        onPick={(a) => {
+          setAccount(a);
+          setMethod("google");
+          setStep("authing");
+        }}
+      />
+    );
 
   if (step === "google") {
     return (
@@ -199,16 +330,11 @@ export function CreateWallet() {
             </div>
           </div>
         </Card>
-        <CButton
-          size="lg"
-          className="mt-6 w-full"
-          onClick={() => {
-            setWalletMethod("google");
-            setStep("creating");
-          }}
-        >
-          <GoogleGlyph /> Continue with Google
-        </CButton>
+        <div className="mt-6">
+          <GoogleButton label="Continue with Google" onClick={() => setStep("picker")} />
+          <LearnLink onClick={() => setLearn(true)} />
+        </div>
+        <LearnSheet open={learn} onClose={() => setLearn(false)} />
       </Screen>
     );
   }
@@ -255,8 +381,9 @@ export function CreateWallet() {
         return;
       }
       setError(null);
-      setWalletMethod("phrase");
-      setStep("creating");
+      setMethod("phrase");
+      setAccount(null);
+      setStep("pin");
     };
     return (
       <Screen onBack={() => setStep("phrase")} title="Create · Confirm">
@@ -291,7 +418,7 @@ export function CreateWallet() {
       <div className="mt-7 flex flex-col gap-4">
         <Card ticks className="hero-light p-6">
           <div className="flex items-center gap-2">
-            <GoogleGlyph />
+            <GoogleLogo />
             <span className="rounded-full border border-gold/50 bg-gold-soft/40 px-2 py-0.5 text-[0.65rem] tracking-wide text-foreground/70 uppercase">
               Recommended
             </span>
@@ -300,9 +427,10 @@ export function CreateWallet() {
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
             Google verifies your identity only. Your keys stay with you.
           </p>
-          <CButton className="mt-5 w-full" onClick={() => setStep("google")}>
-            Continue with Google
-          </CButton>
+          <div className="mt-5">
+            <GoogleButton label="Continue with Google" onClick={() => setStep("google")} />
+            <LearnLink onClick={() => setLearn(true)} />
+          </div>
         </Card>
         <Card className="p-6">
           <KeyRound className="size-5 text-foreground/60" strokeWidth={1.4} />
@@ -315,23 +443,79 @@ export function CreateWallet() {
           </CButton>
         </Card>
       </div>
+      <LearnSheet open={learn} onClose={() => setLearn(false)} />
     </Screen>
   );
 }
 
-type ImportStep = "method" | "google" | "phrase" | "creating" | "done";
+type ImportStep = "method" | "google" | "picker" | "authing" | "phrase" | "pin" | "creating" | "done";
 
 export function ImportWallet() {
-  const { setStage } = useCusp();
+  const { setStage, updateSession, setPinSet, setWalletMethod } = useCusp();
   const [step, setStep] = useState<ImportStep>("method");
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [account, setAccount] = useState<GoogleAccount | null>(null);
+  const [method, setMethod] = useState<"google" | "phrase">("phrase");
+  const [pin, setPin] = useState("");
 
   const words = value.trim().split(/\s+/).filter(Boolean);
   const valid = words.length === 12 || words.length === 24;
 
   if (step === "creating")
-    return <ProgressRun label="Restoring your Cusp Wallet…" onDone={() => setStep("done")} />;
+    return (
+      <ProgressRun
+        label="Restoring your Cusp Wallet…"
+        onDone={() => {
+          updateSession({
+            walletExists: true,
+            firstLaunchDone: true,
+            authMethod: method,
+            googleAccount: account,
+            pin,
+            fingerprint: false,
+            pattern: false,
+          });
+          setPinSet(true);
+          setWalletMethod(method);
+          setStep("done");
+        }}
+      />
+    );
+
+  if (step === "pin")
+    return (
+      <PinPad
+        title="Create your Cusp PIN"
+        subtitle="Six digits to unlock this restored wallet on this device."
+        onComplete={(p) => {
+          setPin(p);
+          setStep("creating");
+        }}
+        onBack={() => setStep("method")}
+      />
+    );
+
+  if (step === "authing")
+    return (
+      <StepRunner
+        steps={["Authenticating…", "Verifying identity…"]}
+        finalLabel="Identity verified."
+        onDone={() => setStep("pin")}
+      />
+    );
+
+  if (step === "picker")
+    return (
+      <GoogleAccountPicker
+        onCancel={() => setStep("google")}
+        onPick={(a) => {
+          setAccount(a);
+          setMethod("google");
+          setStep("authing");
+        }}
+      />
+    );
   if (step === "done")
     return (
       <div className="animate-rise flex min-h-dvh flex-col items-center justify-center px-8 text-center">
@@ -385,7 +569,8 @@ export function ImportWallet() {
               setError("A recovery phrase must be exactly 12 or 24 words.");
               return;
             }
-            setStep("creating");
+            setMethod("phrase");
+            setStep("pin");
           }}
         >
           Restore wallet
@@ -401,9 +586,9 @@ export function ImportWallet() {
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           For users who previously created a Cusp wallet using Google.
         </p>
-        <CButton size="lg" className="mt-8 w-full" onClick={() => setStep("creating")}>
-          <GoogleGlyph /> Continue with Google
-        </CButton>
+        <div className="mt-8">
+          <GoogleButton label="Continue with Google" onClick={() => setStep("picker")} />
+        </div>
       </Screen>
     );
   }
@@ -413,14 +598,14 @@ export function ImportWallet() {
       <h2 className="text-2xl font-medium tracking-tight">Restore your wallet</h2>
       <div className="mt-7 flex flex-col gap-4">
         <Card ticks className="hero-light p-6">
-          <GoogleGlyph />
+          <GoogleLogo />
           <h3 className="mt-4 text-lg font-medium tracking-tight">Continue with Google</h3>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
             For users who previously created a Cusp wallet using Google.
           </p>
-          <CButton className="mt-5 w-full" onClick={() => setStep("google")}>
-            Continue with Google
-          </CButton>
+          <div className="mt-5">
+            <GoogleButton label="Continue with Google" onClick={() => setStep("google")} />
+          </div>
         </Card>
         <div className="flex items-center gap-4">
           <Divider className="flex-1" />

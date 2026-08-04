@@ -3,6 +3,7 @@ import {
   BookOpen,
   Check,
   Fingerprint,
+  Grid3x3,
   KeyRound,
   Laptop,
   LifeBuoy,
@@ -39,6 +40,7 @@ import {
   SECURITY_TIPS,
   WORDS,
 } from "./data";
+import { PinPad } from "./auth";
 import { useCusp } from "./store";
 import { cn } from "@/lib/utils";
 
@@ -51,13 +53,14 @@ export function SecurityScreen() {
     setBiometrics,
     autoLock,
     pinSet,
-    setPinSet,
     phraseBackedUp,
     googleVerified,
     connections,
     sessions,
     openScreen,
-    setLocked,
+    session,
+    updateSession,
+    lockNow,
   } = useCusp();
   const ready = useSettled();
 
@@ -127,20 +130,32 @@ export function SecurityScreen() {
             right={<Toggle checked={biometrics} onChange={(v) => { setBiometrics(v); toast.success(v ? "Biometrics on" : "Biometrics off"); }} label="Biometrics" />}
           />
           <ListRow
+            icon={Grid3x3}
+            label="Device pattern"
+            desc="Prototype simulation"
+            right={
+              <Toggle
+                checked={session.pattern}
+                onChange={(v) => {
+                  updateSession({ pattern: v });
+                  toast.success(v ? "Pattern unlock on" : "Pattern unlock off");
+                }}
+                label="Device pattern"
+              />
+            }
+          />
+          <ListRow
             icon={Lock}
-            label="Wallet PIN"
+            label={pinSet ? "Change PIN" : "Create PIN"}
             value={pinSet ? "Set" : "Not set"}
-            onClick={() => {
-              setPinSet(true);
-              toast.success("PIN updated");
-            }}
+            onClick={() => openScreen("changePin")}
           />
           <ListRow icon={Timer} label="Auto-lock timer" value={autoLock} onClick={() => openScreen("autolock")} />
           <ListRow
             icon={Lock}
             label="Lock wallet now"
             onClick={() => {
-              setLocked(true);
+              lockNow();
               toast("Wallet locked");
             }}
           />
@@ -681,3 +696,77 @@ export function PermissionExplainer({ permissions }: { permissions: string[] }) 
 }
 
 export { CopyButton };
+
+/* ------------------------------- Change PIN ------------------------------- */
+
+export function ChangePinScreen() {
+  const { session, updateSession, setPinSet, back } = useCusp();
+  const [stage, setStage] = useState<"current" | "next" | "confirm" | "done">(
+    session.pin ? "current" : "next",
+  );
+  const [next, setNext] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  if (stage === "done")
+    return (
+      <SubScreen title="Wallet PIN">
+        <SuccessPanel title="PIN updated" body="Use your new six-digit PIN the next time Cusp locks.">
+          <CButton size="lg" className="mt-8 w-full max-w-xs" onClick={back}>
+            Done
+          </CButton>
+        </SuccessPanel>
+      </SubScreen>
+    );
+
+  if (stage === "current")
+    return (
+      <PinPad
+        key="pin-current"
+        title="Enter your current PIN"
+        error={error}
+        onComplete={(p) => {
+          if (p !== session.pin) {
+            setError("That PIN doesn't match. Try again.");
+            return;
+          }
+          setError(null);
+          setStage("next");
+        }}
+        onBack={back}
+      />
+    );
+
+  if (stage === "next")
+    return (
+      <PinPad
+        key="pin-new"
+        title="Choose a new PIN"
+        subtitle="Six digits, stored only on this device."
+        onComplete={(p) => {
+          setNext(p);
+          setError(null);
+          setStage("confirm");
+        }}
+        onBack={back}
+      />
+    );
+
+  return (
+    <PinPad
+      key="pin-newconfirm"
+      title="Confirm your new PIN"
+      error={error}
+      onComplete={(p) => {
+        if (p !== next) {
+          setError("Those PINs don't match. Try once more.");
+          return;
+        }
+        updateSession({ pin: next });
+        setPinSet(true);
+        toast.success("PIN updated");
+        setStage("done");
+      }}
+      onBack={() => setStage("next")}
+    />
+  );
+}

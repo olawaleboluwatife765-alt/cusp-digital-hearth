@@ -208,17 +208,15 @@ export function PinPad({
     if (error) setPin("");
   }, [error]);
 
-  const push = useCallback(
-    (d: string) => {
-      setPin((p) => {
-        if (p.length >= 6) return p;
-        const next = p + d;
-        if (next.length === 6) setTimeout(() => onComplete(next), 160);
-        return next;
-      });
-    },
-    [onComplete],
-  );
+  useEffect(() => {
+    if (pin.length < 6) return undefined;
+    const t = setTimeout(() => onComplete(pin), 200);
+    return () => clearTimeout(t);
+  }, [pin, onComplete]);
+
+  const push = useCallback((d: string) => {
+    setPin((p) => (p.length >= 6 ? p : p + d));
+  }, []);
 
   return (
     <div className="animate-rise flex min-h-dvh flex-col items-center justify-center px-8 py-10 text-center">

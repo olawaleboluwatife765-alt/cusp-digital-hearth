@@ -454,19 +454,74 @@ export function CreateWallet() {
   );
 }
 
-type ImportStep = "method" | "google" | "phrase" | "creating" | "done";
+type ImportStep = "method" | "google" | "picker" | "authing" | "phrase" | "pin" | "creating" | "done";
 
 export function ImportWallet() {
-  const { setStage } = useCusp();
+  const { setStage, updateSession, setPinSet, setWalletMethod } = useCusp();
   const [step, setStep] = useState<ImportStep>("method");
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [account, setAccount] = useState<GoogleAccount | null>(null);
+  const [method, setMethod] = useState<"google" | "phrase">("phrase");
+  const [pin, setPin] = useState("");
 
   const words = value.trim().split(/\s+/).filter(Boolean);
   const valid = words.length === 12 || words.length === 24;
 
   if (step === "creating")
-    return <ProgressRun label="Restoring your Cusp Wallet…" onDone={() => setStep("done")} />;
+    return (
+      <ProgressRun
+        label="Restoring your Cusp Wallet…"
+        onDone={() => {
+          updateSession({
+            walletExists: true,
+            firstLaunchDone: true,
+            authMethod: method,
+            googleAccount: account,
+            pin,
+            fingerprint: false,
+            pattern: false,
+          });
+          setPinSet(true);
+          setWalletMethod(method);
+          setStep("done");
+        }}
+      />
+    );
+
+  if (step === "pin")
+    return (
+      <PinPad
+        title="Create your Cusp PIN"
+        subtitle="Six digits to unlock this restored wallet on this device."
+        onComplete={(p) => {
+          setPin(p);
+          setStep("creating");
+        }}
+        onBack={() => setStep("method")}
+      />
+    );
+
+  if (step === "authing")
+    return (
+      <StepRunner
+        steps={["Authenticating…", "Verifying identity…"]}
+        finalLabel="Identity verified."
+        onDone={() => setStep("pin")}
+      />
+    );
+
+  if (step === "picker")
+    return (
+      <GoogleAccountPicker
+        onCancel={() => setStep("google")}
+        onPick={(a) => {
+          setAccount(a);
+          setMethod("google");
+          setStep("authing");
+        }}
+      />
+    );
   if (step === "done")
     return (
       <div className="animate-rise flex min-h-dvh flex-col items-center justify-center px-8 text-center">
@@ -520,7 +575,8 @@ export function ImportWallet() {
               setError("A recovery phrase must be exactly 12 or 24 words.");
               return;
             }
-            setStep("creating");
+            setMethod("phrase");
+            setStep("pin");
           }}
         >
           Restore wallet
@@ -536,9 +592,9 @@ export function ImportWallet() {
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           For users who previously created a Cusp wallet using Google.
         </p>
-        <CButton size="lg" className="mt-8 w-full" onClick={() => setStep("creating")}>
-          <GoogleGlyph /> Continue with Google
-        </CButton>
+        <div className="mt-8">
+          <GoogleButton label="Continue with Google" onClick={() => setStep("picker")} />
+        </div>
       </Screen>
     );
   }
@@ -548,14 +604,14 @@ export function ImportWallet() {
       <h2 className="text-2xl font-medium tracking-tight">Restore your wallet</h2>
       <div className="mt-7 flex flex-col gap-4">
         <Card ticks className="hero-light p-6">
-          <GoogleGlyph />
+          <GoogleLogo />
           <h3 className="mt-4 text-lg font-medium tracking-tight">Continue with Google</h3>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
             For users who previously created a Cusp wallet using Google.
           </p>
-          <CButton className="mt-5 w-full" onClick={() => setStep("google")}>
-            Continue with Google
-          </CButton>
+          <div className="mt-5">
+            <GoogleButton label="Continue with Google" onClick={() => setStep("google")} />
+          </div>
         </Card>
         <div className="flex items-center gap-4">
           <Divider className="flex-1" />

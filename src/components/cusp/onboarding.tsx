@@ -264,6 +264,7 @@ export function CreateWallet() {
   if (step === "pin")
     return (
       <PinPad
+        key="pin-create"
         title="Create your Cusp PIN"
         subtitle="Choose a six-digit PIN. It unlocks Cusp on this device and never leaves it."
         onComplete={(p) => {
@@ -278,6 +279,7 @@ export function CreateWallet() {
   if (step === "pinConfirm")
     return (
       <PinPad
+        key="pin-confirm"
         title="Confirm your PIN"
         subtitle="Enter the same six digits again."
         error={pinError}

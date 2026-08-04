@@ -721,6 +721,7 @@ export function ChangePinScreen() {
   if (stage === "current")
     return (
       <PinPad
+        key="pin-current"
         title="Enter your current PIN"
         error={error}
         onComplete={(p) => {
@@ -738,6 +739,7 @@ export function ChangePinScreen() {
   if (stage === "next")
     return (
       <PinPad
+        key="pin-new"
         title="Choose a new PIN"
         subtitle="Six digits, stored only on this device."
         onComplete={(p) => {
@@ -751,6 +753,7 @@ export function ChangePinScreen() {
 
   return (
     <PinPad
+      key="pin-newconfirm"
       title="Confirm your new PIN"
       error={error}
       onComplete={(p) => {

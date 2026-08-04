@@ -1,17 +1,30 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, KeyRound, Shield, Sparkles, Wallet } from "lucide-react";
 import { CButton, Card, CuspMark, Divider, SectionLabel } from "./primitives";
+import {
+  BiometricScan,
+  GoogleAccountPicker,
+  GoogleButton,
+  GoogleLogo,
+  LearnLink,
+  LearnSheet,
+  PinPad,
+  SecureWalletStep,
+  StepRunner,
+} from "./auth";
+import type { GoogleAccount } from "./session";
 import { useCusp } from "./store";
 import { WORDS } from "./data";
 import { TipCard } from "./tips";
 import { cn } from "@/lib/utils";
 
 export function Splash() {
-  const { setStage } = useCusp();
+  const { setStage, session, hydrated } = useCusp();
   useEffect(() => {
-    const t = setTimeout(() => setStage("brand"), 2200);
+    if (!hydrated) return undefined;
+    const t = setTimeout(() => setStage(session.walletExists ? "lock" : "brand"), 2200);
     return () => clearTimeout(t);
-  }, [setStage]);
+  }, [setStage, hydrated, session.walletExists]);
 
   return (
     <div className="relative flex min-h-dvh items-center justify-center overflow-hidden">

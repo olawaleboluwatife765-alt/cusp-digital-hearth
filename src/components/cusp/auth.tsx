@@ -210,7 +210,10 @@ export function PinPad({
 
   useEffect(() => {
     if (pin.length < 6) return undefined;
-    const t = setTimeout(() => onComplete(pin), 200);
+    const t = setTimeout(() => {
+      setPin("");
+      onComplete(pin);
+    }, 220);
     return () => clearTimeout(t);
   }, [pin, onComplete]);
 

@@ -15,8 +15,10 @@ import {
 import {
   AppearanceScreen,
   AutoLockScreen,
+  AccountScreen,
   ConnectedAppsScreen,
   CurrencyScreen,
+  DeveloperScreen,
   DevicesScreen,
   HelpScreen,
   InfoPage,
@@ -79,6 +81,10 @@ function render(key: ScreenKey) {
       return <LanguageScreen />;
     case "profile":
       return <ProfileScreen />;
+    case "account":
+      return <AccountScreen />;
+    case "developer":
+      return <DeveloperScreen />;
     case "appearance":
       return <AppearanceScreen />;
     case "learn":

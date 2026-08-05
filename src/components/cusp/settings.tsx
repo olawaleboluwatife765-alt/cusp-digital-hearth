@@ -1,21 +1,26 @@
 import {
   Bell,
   ChevronRight,
+  Code2,
   Fingerprint,
   Globe,
   HelpCircle,
   Info,
   KeyRound,
   Languages,
+  LogOut,
   Network,
   Palette,
   Shield,
   User,
+  UserCircle,
 } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
-import { Card, CuspMark, SectionLabel } from "./primitives";
+import { CButton, Card, ConfirmDialog, CuspMark, SectionLabel } from "./primitives";
 import { NETWORKS } from "./data";
 import { SHORT_ADDRESS, useCusp } from "./store";
+import { THEME_OPTIONS } from "./theme";
 
 function Row({
   icon: Icon,
@@ -42,14 +47,20 @@ function Row({
 }
 
 export function SettingsScreen() {
-  const { currency, language, biometrics, network, openScreen } = useCusp();
+  const { currency, language, biometrics, network, openScreen, session, theme, signOut } = useCusp();
+  const [logout, setLogout] = useState(false);
+  const identity = session.bnsName ?? SHORT_ADDRESS;
+  const themeLabel = THEME_OPTIONS.find((t) => t.key === theme)?.label ?? "Paper";
   return (
     <div className="flex flex-col gap-5 px-5 pt-4 pb-8">
       <Card ticks className="hero-light flex items-center gap-4 p-5">
         <CuspMark className="size-12" />
         <div className="min-w-0">
-          <p className="text-sm font-medium">My Wallet</p>
-          <p className="mono-num text-xs text-muted-foreground">{SHORT_ADDRESS}</p>
+          <p className="text-sm font-medium">{session.walletName}</p>
+          <p className="mono-num text-xs text-muted-foreground">{identity}</p>
+          {session.googleAccount && (
+            <p className="truncate text-xs text-muted-foreground">{session.googleAccount.email}</p>
+          )}
         </div>
       </Card>
 
@@ -57,9 +68,16 @@ export function SettingsScreen() {
         <SectionLabel>Account</SectionLabel>
         <Card className="mt-3 px-5">
           <div className="divide-y divide-border/70">
+            <Row
+              icon={UserCircle}
+              label="Account & session"
+              value={session.googleAccount ? session.googleAccount.name.split(" ")[0] : "Phrase"}
+              onClick={() => openScreen("account")}
+            />
             <Row icon={User} label="Profile" onClick={() => openScreen("profile")} />
-            <Row icon={Palette} label="Appearance" value="Paper" onClick={() => openScreen("appearance")} />
+            <Row icon={Palette} label="Appearance" value={themeLabel} onClick={() => openScreen("appearance")} />
             <Row icon={Bell} label="Notifications" onClick={() => openScreen("notifications")} />
+            <Row icon={LogOut} label="Log out" onClick={() => setLogout(true)} />
           </div>
         </Card>
       </section>
@@ -110,6 +128,32 @@ export function SettingsScreen() {
       <p className="mt-2 text-center text-xs text-muted-foreground">
         Designed for a decentralized future.
       </p>
+
+      <section>
+        <SectionLabel>Developer</SectionLabel>
+        <Card className="mt-3 px-5">
+          <div className="divide-y divide-border/70">
+            <Row icon={Code2} label="Prototype tools" value="Reset" onClick={() => openScreen("developer")} />
+          </div>
+        </Card>
+        <p className="mt-2 text-center text-[0.65rem] text-muted-foreground">
+          For testing and demonstrations only.
+        </p>
+      </section>
+
+      <ConfirmDialog
+        open={logout}
+        title="Log out of Cusp?"
+        description="You'll be signed out on this device. You can sign back in anytime using the same Google account or restore your wallet with your recovery phrase."
+        confirmLabel="Log Out"
+        danger
+        onCancel={() => setLogout(false)}
+        onConfirm={() => {
+          setLogout(false);
+          signOut();
+          toast.success("Signed out of Cusp");
+        }}
+      />
     </div>
   );
 }

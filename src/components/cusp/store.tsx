@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { DEFAULT_SESSION, clearSession, loadSession, saveSession, type CuspSession } from "./session";
+import { applyTheme, loadTheme, resolveTheme, saveTheme, type ThemeMode } from "./theme";
 import {
   ASSET_SEEDS,
   CONNECTED_APPS_SEED,
@@ -44,6 +45,8 @@ export type ScreenKey =
   | "autolock"
   | "manageWallets"
   | "addressBook"
+  | "account"
+  | "developer"
   | "help"
   | "about"
   | "privacy"
@@ -179,6 +182,14 @@ type Ctx = {
   unlock: () => void;
   lockNow: () => void;
   resetWallet: () => void;
+  signOut: () => void;
+  switchAccount: () => void;
+  resetPrototype: () => void;
+
+  /* appearance */
+  theme: ThemeMode;
+  setTheme: (t: ThemeMode) => void;
+  resolvedTheme: "paper" | "graphite";
 };
 
 const CuspContext = createContext<Ctx | null>(null);
@@ -237,6 +248,8 @@ export function CuspProvider({ children }: { children: ReactNode }) {
   const [locked, setLocked] = useState(false);
   const [session, setSession] = useState<CuspSession>(DEFAULT_SESSION);
   const [hydrated, setHydrated] = useState(false);
+  const [theme, setThemeState] = useState<ThemeMode>("paper");
+  const [resolvedTheme, setResolvedTheme] = useState<"paper" | "graphite">("paper");
   const [tasks, setTasks] = useState<Task[]>([
     { id: "fund", label: "Fund your wallet", done: false },
     { id: "explore", label: "Explore a Stacks App", done: false },
@@ -256,6 +269,32 @@ export function CuspProvider({ children }: { children: ReactNode }) {
     setHydrated(true);
   }, []);
 
+  /* appearance: hydrate + follow the system when asked */
+  useEffect(() => {
+    const t = loadTheme();
+    setThemeState(t);
+    applyTheme(t);
+    setResolvedTheme(resolveTheme(t));
+  }, []);
+
+  useEffect(() => {
+    if (theme !== "system" || !window.matchMedia) return undefined;
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const onChange = () => {
+      applyTheme("system");
+      setResolvedTheme(resolveTheme("system"));
+    };
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, [theme]);
+
+  const setTheme = useCallback((t: ThemeMode) => {
+    setThemeState(t);
+    saveTheme(t);
+    applyTheme(t);
+    setResolvedTheme(resolveTheme(t));
+  }, []);
+
   const updateSession = useCallback((patch: Partial<CuspSession>) => {
     setSession((prev) => {
       const next = { ...prev, ...patch };
@@ -265,6 +304,11 @@ export function CuspProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const unlock = useCallback(() => {
+    setSession((prev) => {
+      const next = { ...prev, signedIn: true };
+      saveSession(next);
+      return next;
+    });
     setLocked(false);
     setStage("app");
   }, []);
@@ -280,6 +324,49 @@ export function CuspProvider({ children }: { children: ReactNode }) {
     setSession(DEFAULT_SESSION);
     setLocked(false);
     setStage("brand");
+  }, []);
+
+  /** Ends the session but keeps the simulated wallet for future sign-ins. */
+  const signOut = useCallback(() => {
+    setSession((prev) => {
+      const next = { ...prev, signedIn: false };
+      saveSession(next);
+      return next;
+    });
+    setScreens([]);
+    setDrawerOpen(false);
+    setTabRaw("home");
+    setLocked(false);
+    setStage("splash");
+  }, []);
+
+  /** Sign out and land straight on the account chooser. */
+  const switchAccount = useCallback(() => {
+    setSession((prev) => {
+      const next = { ...prev, signedIn: false };
+      saveSession(next);
+      return next;
+    });
+    setScreens([]);
+    setDrawerOpen(false);
+    setLocked(false);
+    setStage("select");
+  }, []);
+
+  /** Developer tool — wipe local storage and simulate a first launch. */
+  const resetPrototype = useCallback(() => {
+    try {
+      window.localStorage.clear();
+    } catch {
+      /* ignore */
+    }
+    setSession(DEFAULT_SESSION);
+    setScreens([]);
+    setDrawerOpen(false);
+    setTabRaw("home");
+    setLocked(false);
+    setPinSet(false);
+    setStage("splash");
   }, []);
 
   const totalUsd = useMemo(
@@ -436,6 +523,12 @@ export function CuspProvider({ children }: { children: ReactNode }) {
       unlock,
       lockNow,
       resetWallet,
+      signOut,
+      switchAccount,
+      resetPrototype,
+      theme,
+      setTheme,
+      resolvedTheme,
     }),
     [
       stage,
@@ -473,6 +566,12 @@ export function CuspProvider({ children }: { children: ReactNode }) {
       unlock,
       lockNow,
       resetWallet,
+      signOut,
+      switchAccount,
+      resetPrototype,
+      theme,
+      setTheme,
+      resolvedTheme,
     ],
   );
 

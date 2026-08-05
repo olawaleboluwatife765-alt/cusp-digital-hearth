@@ -22,9 +22,12 @@ export function Splash() {
   const { setStage, session, hydrated } = useCusp();
   useEffect(() => {
     if (!hydrated) return undefined;
-    const t = setTimeout(() => setStage(session.walletExists ? "lock" : "brand"), 2200);
+    const t = setTimeout(
+      () => setStage(session.walletExists && session.signedIn ? "lock" : "brand"),
+      2200,
+    );
     return () => clearTimeout(t);
-  }, [setStage, hydrated, session.walletExists]);
+  }, [setStage, hydrated, session.walletExists, session.signedIn]);
 
   return (
     <div className="relative flex min-h-dvh items-center justify-center overflow-hidden">
@@ -181,6 +184,7 @@ type CreateStep =
   | "google"
   | "picker"
   | "authing"
+  | "returning"
   | "phrase"
   | "confirm"
   | "pin"
@@ -191,7 +195,7 @@ type CreateStep =
   | "done";
 
 export function CreateWallet() {
-  const { setStage, setWalletMethod, updateSession, setPinSet, setBiometrics } = useCusp();
+  const { setStage, setWalletMethod, updateSession, setPinSet, setBiometrics, session } = useCusp();
   const [step, setStep] = useState<CreateStep>("method");
   const [learn, setLearn] = useState(false);
   const [account, setAccount] = useState<GoogleAccount | null>(null);
@@ -206,11 +210,14 @@ export function CreateWallet() {
   const [error, setError] = useState<string | null>(null);
 
   const finish = () => {
+    const first = (account?.name ?? "cusp").split(" ")[0]!.toLowerCase();
     updateSession({
       walletExists: true,
       firstLaunchDone: true,
+      signedIn: true,
       authMethod: method,
       googleAccount: account,
+      bnsName: account ? `${first}.btc` : null,
       walletName: "My Wallet",
       pin,
       fingerprint: unlockChoice === "fingerprint",
@@ -236,6 +243,20 @@ export function CreateWallet() {
       />
     );
   if (step === "done") return <WalletReady onContinue={() => setStage("app")} />;
+
+  if (step === "returning")
+    return (
+      <StepRunner
+        steps={[
+          "Authenticating…",
+          "Verifying identity…",
+          "Existing Cusp wallet found…",
+          "Restoring your wallet…",
+        ]}
+        finalLabel="Welcome back"
+        onDone={() => setStage("lock")}
+      />
+    );
 
   if (step === "scan")
     return (
@@ -311,6 +332,10 @@ export function CreateWallet() {
         onPick={(a) => {
           setAccount(a);
           setMethod("google");
+          if (session.walletExists && session.googleAccount?.email === a.email) {
+            setStep("returning");
+            return;
+          }
           setStep("authing");
         }}
       />
@@ -448,10 +473,19 @@ export function CreateWallet() {
   );
 }
 
-type ImportStep = "method" | "google" | "picker" | "authing" | "phrase" | "pin" | "creating" | "done";
+type ImportStep =
+  | "method"
+  | "google"
+  | "picker"
+  | "authing"
+  | "returning"
+  | "phrase"
+  | "pin"
+  | "creating"
+  | "done";
 
 export function ImportWallet() {
-  const { setStage, updateSession, setPinSet, setWalletMethod } = useCusp();
+  const { setStage, updateSession, setPinSet, setWalletMethod, session } = useCusp();
   const [step, setStep] = useState<ImportStep>("method");
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -467,11 +501,14 @@ export function ImportWallet() {
       <ProgressRun
         label="Restoring your Cusp Wallet…"
         onDone={() => {
+          const first = (account?.name ?? "cusp").split(" ")[0]!.toLowerCase();
           updateSession({
             walletExists: true,
             firstLaunchDone: true,
+            signedIn: true,
             authMethod: method,
             googleAccount: account,
+            bnsName: account ? `${first}.btc` : null,
             pin,
             fingerprint: false,
             pattern: false,
@@ -505,6 +542,20 @@ export function ImportWallet() {
       />
     );
 
+  if (step === "returning")
+    return (
+      <StepRunner
+        steps={[
+          "Authenticating…",
+          "Verifying identity…",
+          "Existing Cusp wallet found…",
+          "Restoring your wallet…",
+        ]}
+        finalLabel="Welcome back"
+        onDone={() => setStage("lock")}
+      />
+    );
+
   if (step === "picker")
     return (
       <GoogleAccountPicker
@@ -512,6 +563,10 @@ export function ImportWallet() {
         onPick={(a) => {
           setAccount(a);
           setMethod("google");
+          if (session.walletExists && session.googleAccount?.email === a.email) {
+            setStep("returning");
+            return;
+          }
           setStep("authing");
         }}
       />

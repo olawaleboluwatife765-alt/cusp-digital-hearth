@@ -71,7 +71,7 @@ export function SettingsScreen() {
             <Row
               icon={UserCircle}
               label="Account & session"
-              value={session.googleAccount ? session.googleAccount.name.split(" ")[0] : "Phrase"}
+              value={session.googleAccount ? session.googleAccount.name.split(" ")[0]! : "Phrase"}
               onClick={() => openScreen("account")}
             />
             <Row icon={User} label="Profile" onClick={() => openScreen("profile")} />

@@ -6,6 +6,8 @@ export type CuspSession = {
   firstLaunchDone: boolean;
   walletName: string;
   googleAccount: GoogleAccount | null;
+  bnsName: string | null;
+  signedIn: boolean;
   authMethod: "google" | "phrase" | null;
   pin: string | null;
   fingerprint: boolean;
@@ -17,6 +19,8 @@ export const DEFAULT_SESSION: CuspSession = {
   firstLaunchDone: false,
   walletName: "My Wallet",
   googleAccount: null,
+  bnsName: null,
+  signedIn: false,
   authMethod: null,
   pin: null,
   fingerprint: false,

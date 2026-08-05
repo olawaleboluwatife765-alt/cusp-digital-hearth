@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { DEFAULT_SESSION, clearSession, loadSession, saveSession, type CuspSession } from "./session";
+import { applyTheme, loadTheme, resolveTheme, saveTheme, type ThemeMode } from "./theme";
 import {
   ASSET_SEEDS,
   CONNECTED_APPS_SEED,
@@ -44,6 +45,8 @@ export type ScreenKey =
   | "autolock"
   | "manageWallets"
   | "addressBook"
+  | "account"
+  | "developer"
   | "help"
   | "about"
   | "privacy"
@@ -179,6 +182,14 @@ type Ctx = {
   unlock: () => void;
   lockNow: () => void;
   resetWallet: () => void;
+  signOut: () => void;
+  switchAccount: () => void;
+  resetPrototype: () => void;
+
+  /* appearance */
+  theme: ThemeMode;
+  setTheme: (t: ThemeMode) => void;
+  resolvedTheme: "paper" | "graphite";
 };
 
 const CuspContext = createContext<Ctx | null>(null);

@@ -232,21 +232,6 @@ export function ConfirmDialog({
   );
 }
 
-function SuccessMarkLegacy({ className }: { className?: string }) {
-  return (
-    <div
-      className={cn(
-        "animate-emerge flex size-16 items-center justify-center rounded-full border border-gold/50 bg-gold-soft/40",
-        className,
-      )}
-      aria-hidden
-    >
-      <Check className="size-7 text-gold" strokeWidth={1.6} />
-    </div>
-  );
-}
-void SuccessMarkLegacy;
-
 export function SuccessPanel({
   title,
   body,

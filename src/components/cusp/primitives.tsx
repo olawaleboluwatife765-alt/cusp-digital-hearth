@@ -189,6 +189,64 @@ export function SuccessMark({ className }: { className?: string }) {
   );
 }
 
+/** Premium confirmation dialog in the drafted card style. */
+export function ConfirmDialog({
+  open,
+  title,
+  description,
+  confirmLabel = "Confirm",
+  cancelLabel = "Cancel",
+  danger,
+  onConfirm,
+  onCancel,
+}: {
+  open: boolean;
+  title: string;
+  description: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  danger?: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  if (!open) return null;
+  return (
+    <div role="dialog" aria-modal="true" aria-label={title} className="fixed inset-0 z-[80] mx-auto flex w-full max-w-md items-center justify-center px-7">
+      <button aria-label="Cancel" onClick={onCancel} className="absolute inset-0 bg-graphite/45 backdrop-blur-[2px]" />
+      <Card ticks className="animate-rise relative w-full p-6">
+        <h3 className="text-lg font-medium tracking-tight">{title}</h3>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{description}</p>
+        <div className="mt-6 flex gap-3">
+          <CButton variant="outline" className="flex-1" onClick={onCancel}>
+            {cancelLabel}
+          </CButton>
+          <CButton
+            className={cn("flex-1", danger && "bg-destructive text-destructive-foreground hover:bg-destructive/90")}
+            onClick={onConfirm}
+          >
+            {confirmLabel}
+          </CButton>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+function SuccessMarkLegacy({ className }: { className?: string }) {
+  return (
+    <div
+      className={cn(
+        "animate-emerge flex size-16 items-center justify-center rounded-full border border-gold/50 bg-gold-soft/40",
+        className,
+      )}
+      aria-hidden
+    >
+      <Check className="size-7 text-gold" strokeWidth={1.6} />
+    </div>
+  );
+}
+void SuccessMarkLegacy;
+
 export function SuccessPanel({
   title,
   body,

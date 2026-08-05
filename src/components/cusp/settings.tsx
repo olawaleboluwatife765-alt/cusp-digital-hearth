@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { CButton, Card, ConfirmDialog, CuspMark, SectionLabel } from "./primitives";
+import { Card, ConfirmDialog, CuspMark, SectionLabel } from "./primitives";
 import { NETWORKS } from "./data";
 import { SHORT_ADDRESS, useCusp } from "./store";
 import { THEME_OPTIONS } from "./theme";

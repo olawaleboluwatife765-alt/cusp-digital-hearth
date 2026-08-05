@@ -22,9 +22,12 @@ export function Splash() {
   const { setStage, session, hydrated } = useCusp();
   useEffect(() => {
     if (!hydrated) return undefined;
-    const t = setTimeout(() => setStage(session.walletExists ? "lock" : "brand"), 2200);
+    const t = setTimeout(
+      () => setStage(session.walletExists && session.signedIn ? "lock" : "brand"),
+      2200,
+    );
     return () => clearTimeout(t);
-  }, [setStage, hydrated, session.walletExists]);
+  }, [setStage, hydrated, session.walletExists, session.signedIn]);
 
   return (
     <div className="relative flex min-h-dvh items-center justify-center overflow-hidden">

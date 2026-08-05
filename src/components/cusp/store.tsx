@@ -523,6 +523,12 @@ export function CuspProvider({ children }: { children: ReactNode }) {
       unlock,
       lockNow,
       resetWallet,
+      signOut,
+      switchAccount,
+      resetPrototype,
+      theme,
+      setTheme,
+      resolvedTheme,
     }),
     [
       stage,
@@ -560,6 +566,12 @@ export function CuspProvider({ children }: { children: ReactNode }) {
       unlock,
       lockNow,
       resetWallet,
+      signOut,
+      switchAccount,
+      resetPrototype,
+      theme,
+      setTheme,
+      resolvedTheme,
     ],
   );
 

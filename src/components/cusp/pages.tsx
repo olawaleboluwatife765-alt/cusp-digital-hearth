@@ -1,9 +1,24 @@
 import { useState } from "react";
-import { Check, Globe, Laptop, Shield, User } from "lucide-react";
+import {
+  Check,
+  Globe,
+  Laptop,
+  LogOut,
+  Monitor,
+  Moon,
+  RefreshCw,
+  Repeat,
+  Shield,
+  Sun,
+  Trash2,
+  User,
+  Wallet,
+} from "lucide-react";
 import { toast } from "sonner";
 import {
   CButton,
   Card,
+  ConfirmDialog,
   InfoNote,
   ListRow,
   SectionLabel,
@@ -12,7 +27,158 @@ import {
 } from "./primitives";
 import { CURRENCIES, DEVICES, LANGUAGES, LEARN, NETWORKS, type CurrencyKey } from "./data";
 import { SHORT_ADDRESS, useCusp, type NetworkKey } from "./store";
+import { THEME_OPTIONS, type ThemeMode } from "./theme";
+import { GoogleLogo } from "./auth";
 import { cn } from "@/lib/utils";
+
+/* ---------------------------------------------------------------- */
+/* Account & session                                                 */
+/* ---------------------------------------------------------------- */
+
+export function AccountScreen() {
+  const { session, network, signOut, switchAccount, openScreen } = useCusp();
+  const [confirm, setConfirm] = useState<"logout" | "switch" | null>(null);
+  const account = session.googleAccount;
+  const identity = session.bnsName ?? SHORT_ADDRESS;
+
+  return (
+    <SubScreen title="Account">
+      <Card ticks className="hero-light flex items-center gap-4 p-5">
+        <span className="flex size-12 shrink-0 items-center justify-center rounded-full border border-border bg-secondary text-sm font-medium">
+          {account ? account.initials : <User className="size-5 text-foreground/60" strokeWidth={1.5} />}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium">{account ? account.name : session.walletName}</p>
+          <p className="truncate text-xs text-muted-foreground">
+            {account ? account.email : "Recovery phrase wallet"}
+          </p>
+        </div>
+        {account && <GoogleLogo className="size-5 shrink-0" />}
+      </Card>
+
+      <SectionLabel className="mt-6">Wallet identity</SectionLabel>
+      <Card className="mt-3 px-5">
+        <div className="divide-y divide-border/70">
+          <ListRow icon={Wallet} label={session.walletName} value={identity} />
+          <ListRow
+            icon={Shield}
+            label="Wallet status"
+            right={
+              <span className="rounded-full border border-gold/50 bg-gold-soft/40 px-2 py-0.5 text-[0.65rem] tracking-wide uppercase">
+                Active · {NETWORKS[network].label}
+              </span>
+            }
+          />
+          <ListRow icon={Wallet} label="Manage wallets" onClick={() => openScreen("manageWallets")} />
+        </div>
+      </Card>
+
+      <SectionLabel className="mt-6">Session</SectionLabel>
+      <Card className="mt-3 px-5">
+        <div className="divide-y divide-border/70">
+          <ListRow
+            icon={Repeat}
+            label="Switch account"
+            desc="Sign in with a different Google-linked wallet."
+            onClick={() => setConfirm("switch")}
+          />
+          <ListRow icon={LogOut} label="Log out" danger onClick={() => setConfirm("logout")} />
+        </div>
+      </Card>
+
+      <div className="mt-4">
+        <InfoNote>
+          Logging out never deletes your wallet. You can sign back in with the same Google account or
+          restore with your recovery phrase.
+        </InfoNote>
+      </div>
+
+      <ConfirmDialog
+        open={confirm === "logout"}
+        title="Log out of Cusp?"
+        description="You'll be signed out on this device. You can sign back in anytime using the same Google account or restore your wallet with your recovery phrase."
+        confirmLabel="Log Out"
+        danger
+        onCancel={() => setConfirm(null)}
+        onConfirm={() => {
+          setConfirm(null);
+          signOut();
+          toast.success("Signed out of Cusp");
+        }}
+      />
+      <ConfirmDialog
+        open={confirm === "switch"}
+        title="Switch account?"
+        description="You'll return to the sign-in screen so you can continue with another Google account. This wallet stays saved on this device."
+        confirmLabel="Switch"
+        onCancel={() => setConfirm(null)}
+        onConfirm={() => {
+          setConfirm(null);
+          switchAccount();
+        }}
+      />
+    </SubScreen>
+  );
+}
+
+export function DeveloperScreen() {
+  const { resetPrototype } = useCusp();
+  const [confirm, setConfirm] = useState<"reset" | "clear" | "first" | null>(null);
+  const run = (label: string) => {
+    setConfirm(null);
+    resetPrototype();
+    toast.success(label);
+  };
+  return (
+    <SubScreen title="Developer">
+      <InfoNote>
+        These tools are for testing and demos only. They erase all locally stored prototype data on
+        this device.
+      </InfoNote>
+      <Card className="mt-4 px-5">
+        <div className="divide-y divide-border/70">
+          <ListRow
+            icon={RefreshCw}
+            label="Reset prototype"
+            desc="Wallet, session, tips and preferences."
+            danger
+            onClick={() => setConfirm("reset")}
+          />
+          <ListRow
+            icon={Trash2}
+            label="Clear local storage"
+            desc="Remove every saved key for Cusp."
+            danger
+            onClick={() => setConfirm("clear")}
+          />
+          <ListRow
+            icon={RefreshCw}
+            label="Simulate first launch"
+            desc="Start again from the splash screen."
+            onClick={() => setConfirm("first")}
+          />
+        </div>
+      </Card>
+      <ConfirmDialog
+        open={confirm !== null}
+        title="Erase prototype data?"
+        description="This clears the simulated wallet, session and preferences stored in this browser. It cannot be undone."
+        confirmLabel="Erase"
+        danger
+        onCancel={() => setConfirm(null)}
+        onConfirm={() =>
+          run(
+            confirm === "clear"
+              ? "Local storage cleared"
+              : confirm === "first"
+                ? "Simulating first launch"
+                : "Prototype reset",
+          )
+        }
+      />
+    </SubScreen>
+  );
+}
 
 export function NotificationsScreen() {
   const { notifications, markAllRead } = useCusp();
@@ -240,28 +406,39 @@ export function ProfileScreen() {
 }
 
 export function AppearanceScreen() {
-  const [theme, setTheme] = useState("Paper");
+  const { theme, setTheme, resolvedTheme } = useCusp();
+  const icons: Record<ThemeMode, typeof Sun> = { paper: Sun, graphite: Moon, system: Monitor };
   return (
     <SubScreen title="Appearance">
-      <Card className="px-5">
+      <p className="text-sm text-muted-foreground">
+        Choose how Cusp looks. Your choice is remembered on this device.
+      </p>
+      <Card className="mt-4 px-5">
         <div className="divide-y divide-border/70">
-          {["Paper", "Graphite (coming soon)", "Match system (coming soon)"].map((t) => (
-            <ListRow
-              key={t}
-              label={t}
-              onClick={() => {
-                if (t !== "Paper") {
-                  toast("Coming soon", { description: "Paper is the only theme for now." });
-                  return;
-                }
-                setTheme(t);
-                toast.success("Settings saved");
-              }}
-              right={t === theme ? <Check className="size-4 text-gold" /> : undefined}
-            />
-          ))}
+          {THEME_OPTIONS.map((o) => {
+            const Icon = icons[o.key];
+            return (
+              <ListRow
+                key={o.key}
+                icon={Icon}
+                label={o.label}
+                desc={o.desc}
+                onClick={() => {
+                  setTheme(o.key);
+                  toast.success(`${o.label} theme applied`);
+                }}
+                right={o.key === theme ? <Check className="size-4 text-gold" /> : undefined}
+              />
+            );
+          })}
         </div>
       </Card>
+      <div className="mt-4">
+        <InfoNote>
+          Currently showing the {resolvedTheme === "graphite" ? "Graphite" : "Paper"} theme across
+          every screen, sheet and dialog.
+        </InfoNote>
+      </div>
     </SubScreen>
   );
 }
